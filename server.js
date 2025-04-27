@@ -1,48 +1,87 @@
 const express = require('express');
-const ffmpeg = require('ffmpeg-static');
-const { exec } = require('child_process');
-const app = express();
-const port = 3000;
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// app.post('/convert', (req, res) => {
-//   const inputVideo = 'input.mp4'; // Placeholder for uploaded video
-//   const outputVideo = 'output.mp4';
-
-//   // FFmpeg command: trim to 30s, resize to 9:16 (1080x1920)
-//   const command = `${ffmpeg} -i ${inputVideo} -t 30 -vf "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -c:a aac ${outputVideo}`;
-
-//   exec(command, (error) => {
-//     if (error) {
-//       console.error(error);
-//       return res.status(500).send('Conversion failed');
-//     }
-//     res.status(200).send('Conversion successful');
-//   });
-// });
-
-app.listen(port, () => console.log(`Server running on port ${port}`));
-
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+const path = require('path');
+const { exec } = require('child_process');
+const cors = require('cors');
+const ffmpeg = require('ffmpeg-static');
+const AWS = require('aws-sdk');
 
-app.post('/convert', upload.single('video'), (req, res) => {
-  const inputVideo = req.file.path;
-  const outputVideo = `converted_${Date.now()}.mp4`;
+const app = express();
+app.use(cors());
 
-  const command = `${ffmpeg} -i ${inputVideo} -t 30 -vf "scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -c:a aac ${outputVideo}`;
+// Configure AWS S3
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION || 'us-east-1'
+});
 
-  exec(command, (error) => {
-    if (error) {
-      console.error(error);
-      return res.status(500).send('Conversion failed');
-    }
-    res.download(outputVideo); // Send the converted file to the user
+// Configure multer for file uploads (temporary local storage)
+const upload = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB limit
+});
+
+// Serve static files (for health check)
+app.use(express.static('public'));
+
+// Ensure temporary directories exist
+require('fs').mkdirSync('uploads', { recursive: true });
+require('fs').mkdirSync('converted', { recursive: true });
+
+// Health check endpoint
+app.get('/health', (req, res) => res.send('OK'));
+
+// Convert endpoint
+app.post('/convert', (req, res) => {
+  upload.single('video')(req, res, async (err) => {
+    if (err) return res.status(400).send('File upload failed: ' + err.message);
+    if (!req.file) return res.status(400).send('No file uploaded');
+    if (req.file.size > 100 * 1024 * 1024) return res.status(400).send('File too large, max 100MB');
+
+    const inputVideo = req.file.path;
+    const outputVideo = `converted_${Date.now()}.mp4`;
+    const outputPath = path.join(__dirname, 'converted', outputVideo);
+
+    // Get user settings from query params (default to 30s, 720p)
+    const duration = parseInt(req.query.duration) || 30;
+    const resolution = req.query.resolution === '1080p' ? '1080:1920' : '720:1280';
+
+    // FFmpeg command with user settings
+    const command = `${ffmpeg} -i "${inputVideo}" -t ${duration} -vf "scale=${resolution}:force_original_aspect_ratio=decrease,pad=${resolution}:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -c:a aac "${outputPath}"`;
+
+    exec(command, async (error) => {
+      if (error) {
+        console.error('FFmpeg error:', error);
+        return res.status(500).send('Conversion failed');
+      }
+
+      // Upload converted file to S3
+      const fileContent = require('fs').readFileSync(outputPath);
+      const s3Params = {
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: `converted/${outputVideo}`,
+        Body: fileContent,
+        ContentType: 'video/mp4',
+        ACL: 'public-read'
+      };
+
+      try {
+        const s3Response = await s3.upload(s3Params).promise();
+        const publicUrl = s3Response.Location;
+
+        // Clean up local files
+        require('fs').unlinkSync(inputVideo);
+        require('fs').unlinkSync(outputPath);
+
+        res.json({ url: publicUrl });
+      } catch (s3Error) {
+        console.error('S3 upload error:', s3Error);
+        res.status(500).send('Failed to upload to S3');
+      }
+    });
   });
 });
 
-app.get('/health', (req, res) => {
-  res.status(200).send('Server is up!');
-});
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Server running on port ${port}`));
