@@ -11,7 +11,7 @@ app.use(cors());
 
 // Configure AWS S3 Client (v3)
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.AWS_REGION,
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -79,8 +79,8 @@ app.post('/convert', (req, res) => {
 
         res.json({ url: publicUrl });
       } catch (s3Error) {
-        console.error('S3 upload error:', s3Error);
-        res.status(500).send('Failed to upload to S3');
+        console.error('S3 upload error:', JSON.stringify(s3Error, null, 2));
+        res.status(500).send('Failed to upload to S3: ' + s3Error.message);
       }
     });
   });
