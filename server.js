@@ -4,16 +4,18 @@ const path = require('path');
 const { exec } = require('child_process');
 const cors = require('cors');
 const ffmpeg = require('ffmpeg-static');
-const AWS = require('aws-sdk');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 
 const app = express();
 app.use(cors());
 
-// Configure AWS S3
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION || 'us-east-1'
+// Configure AWS S3 Client (v3)
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
 // Configure multer for file uploads (temporary local storage)
@@ -56,19 +58,20 @@ app.post('/convert', (req, res) => {
         return res.status(500).send('Conversion failed');
       }
 
-      // Upload converted file to S3
+      // Upload converted file to S3 using v3
       const fileContent = require('fs').readFileSync(outputPath);
       const s3Params = {
         Bucket: process.env.S3_BUCKET_NAME,
         Key: `converted/${outputVideo}`,
         Body: fileContent,
         ContentType: 'video/mp4',
-        ACL: 'public-read'
+        ACL: 'public-read',
       };
 
       try {
-        const s3Response = await s3.upload(s3Params).promise();
-        const publicUrl = s3Response.Location;
+        const command = new PutObjectCommand(s3Params);
+        await s3Client.send(command);
+        const publicUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/converted/${outputVideo}`;
 
         // Clean up local files
         require('fs').unlinkSync(inputVideo);
