@@ -65,7 +65,6 @@ app.post('/convert', (req, res) => {
         Key: `converted/${outputVideo}`,
         Body: fileContent,
         ContentType: 'video/mp4',
-        ACL: 'public-read',
       };
 
       try {
