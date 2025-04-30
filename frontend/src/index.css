@@ -616,3 +616,20 @@ nav a {
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #d3d3d3;
+  height: 8px;
+  border-radius: 5px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #3b82f6; /* Tailwind blue-500 */
+  border-radius: 50%;
+  cursor: pointer;
+}

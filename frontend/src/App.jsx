@@ -24,6 +24,10 @@ function App() {
       setError("Please upload a video file.");
       return;
     }
+    if (videoFile.size > 500 * 1024 * 1024) { // 500MB limit
+      setError("File too large. Please upload a video under 500MB.");
+      return;
+    }
 
     setIsProcessing(true);
     setError(null);
@@ -46,28 +50,68 @@ function App() {
         }
       );
 
-      console.log("Backend response:", response.data);
+    const { jobId } = response.data;
 
-      // Handle different response structures
-      let clips = [];
-      if (Array.isArray(response.data.clips)) {
-        clips = response.data.clips; // { clips: [{ url, id }] }
-      } else if (response.data.url) {
-        clips = [{ url: response.data.url, id: response.data.id || 1 }]; // { url, id? } - Default id if missing
-      } else if (typeof response.data === "string") {
-        clips = [{ url: response.data, id: 1 }]; // Just a URL string
-      } else {
-        throw new Error("Unexpected response structure");
-      }
+    // Poll for status
+    const pollStatus = async () => {
+        try {
+          const statusResponse = await axios.get(
+            `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
+          );
+          const { status, url, error } = statusResponse.data;
 
-      setResults(clips); // Adjust based on your backend response
-      setIsProcessing(false);
+          if (status === "completed") {
+            setResults([{ url, id: 1 }]);
+            setIsProcessing(false);
+          } else if (status === "failed") {
+            setError(error || "Video processing failed.");
+            setIsProcessing(false);
+          } else {
+            setTimeout(pollStatus, 3000); // Poll every 3 seconds
+          }
+        } catch (err) {
+          setError("Failed to check status. Please try again.");
+          setIsProcessing(false);
+          console.error(err);
+        }
+      };
+
+      pollStatus();
     } catch (err) {
-      setError("Failed to process the video. Please try again.");
+      setError("Failed to start processing. Please try again.");
       setIsProcessing(false);
       console.error(err);
     }
   };
+
+  //     console.log("Backend response:", response.data);
+
+  //     // Handle different response structures
+  //     let clips = [];
+  //     if (Array.isArray(response.data.clips)) {
+  //       clips = response.data.clips; // { clips: [{ url, id }] }
+  //     } else if (response.data.url) {
+  //       clips = [{ url: response.data.url, id: response.data.id || 1 }]; // { url, id? } - Default id if missing
+  //     } else if (typeof response.data === "string") {
+  //       clips = [{ url: response.data, id: 1 }]; // Just a URL string
+  //     } else {
+  //       throw new Error("Unexpected response structure");
+  //     }
+
+  //     setResults(clips); // Adjust based on your backend response
+  //     setIsProcessing(false);
+  //   } catch (err) {
+  //     let errorMessage = "Failed to process the video. Please try again.";
+  //     if (err.response?.status === 413) {
+  //       errorMessage = "File too large. Please upload a smaller video.";
+  //     } else if (err.response?.status === 400) {
+  //       errorMessage = "Invalid video format. Please upload an MP4 or MOV file.";
+  //     }
+  //     setError(errorMessage);
+  //     setIsProcessing(false);
+  //     console.error(err);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen flex flex-col">
