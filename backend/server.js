@@ -65,6 +65,7 @@ app.post('/convert', (req, res) => {
         Key: `converted/${outputVideo}`,
         Body: fileContent,
         ContentType: 'video/mp4',
+        ContentDisposition: 'attachment; filename="converted-video.mp4"',
       };
 
       try {
