@@ -1,8 +1,8 @@
 import React from "react";
 
 const UploadSection = ({ videoFile, setVideoFile }) => (
-  <section className="my-4">
-    <label className="block mb-2 font-semibold">Upload your video</label>
+  <section className="space-y-6">
+    <label className="block text-gray-700 font-medium mb-2">Upload your video</label>
     <input
       type="file"
       accept="video/*"

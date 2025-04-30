@@ -1,15 +1,20 @@
 import React from "react";
 
 const Header = () => (
-<header className="flex items-center justify-between p-4 bg-white shadow-md">
-  <div className="flex items-center">
-    <img src="logo.png" alt="Logo" className="h-10 mr-2" />
-    <h1 className="text-2xl font-bold text-gray-800">AI Video to Reels Converter</h1>
+<header className="p-6 bg-white shadow-md">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center space-x-4">
+      <img src="logo.png" alt="Logo" className="h-12" />
+      <div>
+        <h1 className="text-3xl font-extrabold text-gray-900">AI Video to Reels Converter</h1>
+        <p className="text-sm text-gray-500 mt-1">Transform your videos into engaging reels in seconds!</p>
+      </div>
+    </div>
+    <nav className="space-x-6">
+      <a href="#" className="text-gray-600 hover:text-blue-600 transition">Home</a>
+      <a href="#" className="text-gray-600 hover:text-blue-600 transition">About</a>
+    </nav>
   </div>
-  <nav>
-    <a href="#" className="text-blue-600 hover:underline mr-4">Home</a>
-    <a href="#" className="text-blue-600 hover:underline">About</a>
-  </nav>
 </header>
 );
 

@@ -11,7 +11,7 @@ const ResultsPreview = ({ results }) => (
           <a
             href={clip.url}
             download={`clip-${clip.id}.mp4`}
-            className="mt-2 inline-block px-3 py-1 bg-green-600 text-white rounded"
+            className="mt-3 inline-block px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
           >
             Download
           </a>
