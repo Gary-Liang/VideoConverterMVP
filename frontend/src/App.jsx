@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Header from "./components/Header";
 import UploadSection from "./components/UploadSection";
@@ -57,10 +57,10 @@ function App() {
         throw new Error("No jobId returned from server");
       }
       setJobId(jobId);
-      console.log("Job started with ID:", jobId); // Debug log
+      console.log("Job started with ID:", jobId);
 
       const pollStatus = async () => {
-        if (!polling) return;
+        if (!polling || !jobId) return;
 
         try {
           const statusResponse = await axios.get(
@@ -99,6 +99,13 @@ function App() {
       setPolling(false);
     }
   };
+
+  // Ensure UI updates when polling stops
+  useEffect(() => {
+    if (!polling && isProcessing) {
+      setIsProcessing(false);
+    }
+  }, [polling, isProcessing]);
 
   return (
     <div className="min-h-screen flex flex-col">
