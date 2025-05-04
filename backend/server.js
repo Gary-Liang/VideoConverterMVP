@@ -35,7 +35,7 @@ fs.mkdirSync('converted', { recursive: true });
 fs.mkdirSync('progress', { recursive: true });
 
 // In-memory store for job status (use a database like Redis for production)
-const jobs = new Map(); // { jobId: { status: 'processing' | 'completed' | 'failed', url?: string, error?: string, progress?: number } }
+const jobs = new Map(); // { jobId: { status: 'processing' | 'completed' | 'failed', url?: string, error?: string, progress?: number, completedAt?: number } }
 
 // Health check endpoint
 app.get('/health', (req, res) => res.send('OK'));
@@ -50,10 +50,6 @@ app.post('/convert', upload.single('video'), async (req, res) => {
   const outputVideo = `converted_${Date.now()}.mp4`;
   const outputPath = path.join(__dirname, 'converted', outputVideo);
   const progressFile = path.join(__dirname, 'progress', `${jobId}.txt`);
-
-  // Get user settings from query params (default to 30s, 720p)
-  const duration = parseInt(req.query.duration) || 30;
-  const resolution = req.query.resolution === '1080p' ? '1080:1920' : '720:1280';
 
   // Store initial job status
   jobs.set(jobId, { status: 'processing', progress: 0 });
@@ -86,7 +82,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
     const ffmpegProcess = exec(command, async (error) => {
       if (error) {
         console.error('FFmpeg error:', error);
-        jobs.set(jobId, { status: 'failed', error: 'Conversion failed' });
+        jobs.set(jobId, { status: 'failed', error: 'Conversion failed', completedAt: Date.now() });
         fs.unlinkSync(inputVideo);
         if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
         if (fs.existsSync(progressFile)) fs.unlinkSync(progressFile);
@@ -109,7 +105,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
         const publicUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/converted/${outputVideo}`;
 
         // Update job status with the result
-        jobs.set(jobId, { status: 'completed', url: publicUrl, progress: 100 });
+        jobs.set(jobId, { status: 'completed', url: publicUrl, progress: 100, completedAt: Date.now() });
 
         // Clean up local files
         fs.unlinkSync(inputVideo);
@@ -117,7 +113,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
         fs.unlinkSync(progressFile);
       } catch (s3Error) {
         console.error('S3 upload error:', JSON.stringify(s3Error, null, 2));
-        jobs.set(jobId, { status: 'failed', error: 'Failed to upload to S3: ' + s3Error.message });
+        jobs.set(jobId, { status: 'failed', error: 'Failed to upload to S3: ' + s3Error.message, completedAt: Date.now() });
         fs.unlinkSync(inputVideo);
         fs.unlinkSync(outputPath);
         fs.unlinkSync(progressFile);
@@ -165,9 +161,12 @@ app.get('/status/:jobId', (req, res) => {
 
   res.json(job);
 
-  // Clean up completed/failed jobs to free memory
-  if (job.status === 'completed' || job.status === 'failed') {
-    jobs.delete(jobId);
+  // Clean up completed/failed jobs after 30 seconds
+  if (job.status === "completed" || job.status === "failed") {
+    const timeSinceCompletion = Date.now() - (job.completedAt || 0);
+    if (timeSinceCompletion >= 30 * 1000) { // 30 seconds
+      jobs.delete(jobId);
+    }
   }
 });
 

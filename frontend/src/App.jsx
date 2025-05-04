@@ -15,9 +15,10 @@ function App() {
     resolution: 720,
   });
   const [isProcessing, setIsProcessing] = useState(false);
-  const [jobId, setJobId] = useState(null); // New state for jobId
+  const [jobId, setJobId] = useState(null);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
+  const [polling, setPolling] = useState(false); // New state to track polling
 
   const handleStartConversion = async () => {
     if (!videoFile) {
@@ -31,6 +32,7 @@ function App() {
 
     setIsProcessing(true);
     setError(null);
+    setPolling(true); // Start polling
 
     const formData = new FormData();
     formData.append("video", videoFile);
@@ -51,9 +53,11 @@ function App() {
       );
 
       const { jobId } = response.data;
-      setJobId(jobId); // Store jobId in state
+      setJobId(jobId);
 
       const pollStatus = async () => {
+        if (!polling) return; // Stop if polling is disabled
+
         try {
           const statusResponse = await axios.get(
             `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
@@ -63,18 +67,21 @@ function App() {
           if (status === "completed") {
             setResults([{ url, id: 1 }]);
             setIsProcessing(false);
-            setJobId(null); // Clear jobId when done
+            setJobId(null);
+            setPolling(false); // Stop polling
           } else if (status === "failed") {
             setError(error || "Video processing failed.");
             setIsProcessing(false);
-            setJobId(null); // Clear jobId when failed
+            setJobId(null);
+            setPolling(false); // Stop polling
           } else {
             setTimeout(pollStatus, 3000);
           }
         } catch (err) {
           setError("Failed to check status. Please try again.");
           setIsProcessing(false);
-          setJobId(null); // Clear jobId on error
+          setJobId(null);
+          setPolling(false); // Stop polling
           console.error(err);
         }
       };
@@ -83,7 +90,8 @@ function App() {
     } catch (err) {
       setError("Failed to start processing. Please try again.");
       setIsProcessing(false);
-      setJobId(null); // Clear jobId on error
+      setJobId(null);
+      setPolling(false); // Stop polling
       console.error(err);
     }
   };
