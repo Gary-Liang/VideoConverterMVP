@@ -60,25 +60,32 @@ function App() {
       console.log("Job started with ID:", jobId);
 
       const pollStatus = async () => {
-        if (!polling || !jobId) return;
+        if (!polling || !jobId) {
+          console.log("Polling stopped: jobId:", jobId, "polling:", polling);
+          return;
+        }
 
         try {
           const statusResponse = await axios.get(
             `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
           );
           const { status, url, error } = statusResponse.data;
+          console.log("Poll status response:", status, "for jobId:", jobId);
 
           if (status === "completed") {
+            console.log("Job completed, setting results and stopping polling");
             setResults([{ url, id: 1 }]);
             setIsProcessing(false);
             setJobId(null);
             setPolling(false);
           } else if (status === "failed") {
+            console.log("Job failed, setting error and stopping polling");
             setError(error || "Video processing failed.");
             setIsProcessing(false);
             setJobId(null);
             setPolling(false);
           } else {
+            console.log("Job still processing, continuing polling");
             setTimeout(pollStatus, 3000);
           }
         } catch (err) {
@@ -103,6 +110,7 @@ function App() {
   // Ensure UI updates when polling stops
   useEffect(() => {
     if (!polling && isProcessing) {
+      console.log("Polling stopped, clearing isProcessing");
       setIsProcessing(false);
     }
   }, [polling, isProcessing]);
