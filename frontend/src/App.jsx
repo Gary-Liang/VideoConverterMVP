@@ -18,7 +18,7 @@ function App() {
   const [jobId, setJobId] = useState(null);
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
-  const [polling, setPolling] = useState(false); // New state to track polling
+  const [polling, setPolling] = useState(false);
 
   const handleStartConversion = async () => {
     if (!videoFile) {
@@ -32,7 +32,7 @@ function App() {
 
     setIsProcessing(true);
     setError(null);
-    setPolling(true); // Start polling
+    setPolling(true);
 
     const formData = new FormData();
     formData.append("video", videoFile);
@@ -53,10 +53,14 @@ function App() {
       );
 
       const { jobId } = response.data;
+      if (!jobId) {
+        throw new Error("No jobId returned from server");
+      }
       setJobId(jobId);
+      console.log("Job started with ID:", jobId); // Debug log
 
       const pollStatus = async () => {
-        if (!polling) return; // Stop if polling is disabled
+        if (!polling) return;
 
         try {
           const statusResponse = await axios.get(
@@ -68,31 +72,31 @@ function App() {
             setResults([{ url, id: 1 }]);
             setIsProcessing(false);
             setJobId(null);
-            setPolling(false); // Stop polling
+            setPolling(false);
           } else if (status === "failed") {
             setError(error || "Video processing failed.");
             setIsProcessing(false);
             setJobId(null);
-            setPolling(false); // Stop polling
+            setPolling(false);
           } else {
             setTimeout(pollStatus, 3000);
           }
         } catch (err) {
+          console.error("Poll status error:", err);
           setError("Failed to check status. Please try again.");
           setIsProcessing(false);
           setJobId(null);
-          setPolling(false); // Stop polling
-          console.error(err);
+          setPolling(false);
         }
       };
 
       pollStatus();
     } catch (err) {
+      console.error("Conversion start error:", err);
       setError("Failed to start processing. Please try again.");
       setIsProcessing(false);
       setJobId(null);
-      setPolling(false); // Stop polling
-      console.error(err);
+      setPolling(false);
     }
   };
 

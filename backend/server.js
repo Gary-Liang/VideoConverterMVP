@@ -53,6 +53,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
 
   // Store initial job status
   jobs.set(jobId, { status: 'processing', progress: 0 });
+  console.log(`Job initialized: ${jobId}`); // Debug log
 
   // Return jobId immediately
   res.json({ jobId });
@@ -62,14 +63,15 @@ app.post('/convert', upload.single('video'), async (req, res) => {
   exec(getDurationCommand, (err, stdout) => {
     if (err) {
       console.error('FFmpeg duration error:', err);
-      jobs.set(jobId, { status: 'failed', error: 'Failed to get video duration' });
+      jobs.set(jobId, { status: 'failed', error: 'Failed to get video duration', completedAt: Date.now() });
       fs.unlinkSync(inputVideo);
       return;
     }
 
     const durationMatch = stdout.match(/(\d+):(\d+):(\d+\.\d+)/);
     if (!durationMatch) {
-      jobs.set(jobId, { status: 'failed', error: 'Failed to parse video duration' });
+      console.error('Failed to parse video duration for job:', jobId);
+      jobs.set(jobId, { status: 'failed', error: 'Failed to parse video duration', completedAt: Date.now() });
       fs.unlinkSync(inputVideo);
       return;
     }
@@ -77,11 +79,13 @@ app.post('/convert', upload.single('video'), async (req, res) => {
     const totalSeconds = parseInt(durationMatch[1]) * 3600 + parseInt(durationMatch[2]) * 60 + parseFloat(durationMatch[3]);
 
     // Process video conversion with progress
+    const duration = parseInt(req.query.duration) || 30;
+    const resolution = req.query.resolution === '1080p' ? '1080:1920' : '720:1280';
     const command = `${ffmpeg} -i "${inputVideo}" -t ${duration} -vf "scale=${resolution}:force_original_aspect_ratio=decrease,pad=${resolution}:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -c:a aac -progress "${progressFile}" -y "${outputPath}"`;
 
     const ffmpegProcess = exec(command, async (error) => {
       if (error) {
-        console.error('FFmpeg error:', error);
+        console.error('FFmpeg error for job:', jobId, error);
         jobs.set(jobId, { status: 'failed', error: 'Conversion failed', completedAt: Date.now() });
         fs.unlinkSync(inputVideo);
         if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
@@ -106,13 +110,14 @@ app.post('/convert', upload.single('video'), async (req, res) => {
 
         // Update job status with the result
         jobs.set(jobId, { status: 'completed', url: publicUrl, progress: 100, completedAt: Date.now() });
+        console.log(`Job completed: ${jobId}, URL: ${publicUrl}`); // Debug log
 
         // Clean up local files
         fs.unlinkSync(inputVideo);
         fs.unlinkSync(outputPath);
         fs.unlinkSync(progressFile);
       } catch (s3Error) {
-        console.error('S3 upload error:', JSON.stringify(s3Error, null, 2));
+        console.error('S3 upload error for job:', jobId, JSON.stringify(s3Error, null, 2));
         jobs.set(jobId, { status: 'failed', error: 'Failed to upload to S3: ' + s3Error.message, completedAt: Date.now() });
         fs.unlinkSync(inputVideo);
         fs.unlinkSync(outputPath);
@@ -137,6 +142,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
 
       const progress = Math.min(100, (outTime / totalSeconds) * 100);
       jobs.set(jobId, { ...jobs.get(jobId), progress: Math.round(progress) });
+      console.log(`Progress updated for job ${jobId}: ${Math.round(progress)}%`); // Debug log
     };
 
     // Poll the progress file every second
@@ -156,9 +162,11 @@ app.get('/status/:jobId', (req, res) => {
   const job = jobs.get(jobId);
 
   if (!job) {
+    console.log(`Job not found: ${jobId}`); // Debug log
     return res.status(404).send('Job not found');
   }
 
+  console.log(`Status requested for job ${jobId}:`, job); // Debug log
   res.json(job);
 
   // Clean up completed/failed jobs after 30 seconds
@@ -166,6 +174,7 @@ app.get('/status/:jobId', (req, res) => {
     const timeSinceCompletion = Date.now() - (job.completedAt || 0);
     if (timeSinceCompletion >= 30 * 1000) { // 30 seconds
       jobs.delete(jobId);
+      console.log(`Job deleted after 30s: ${jobId}`); // Debug log
     }
   }
 });
