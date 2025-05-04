@@ -1,39 +1,162 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import axios from "axios";
+import Header from "./components/Header";
+import UploadSection from "./components/UploadSection";
+import PreferencesForm from "./components/PreferencesForm";
+import ProcessingStatus from "./components/ProcessingStatus";
+import ResultsPreview from "./components/ResultsPreview";
+import Footer from "./components/Footer";
 
-const ProcessingStatus = () => {
-  const [progress, setProgress] = useState(0);
+function App() {
+  const [videoFile, setVideoFile] = useState(null);
+  const [preferences, setPreferences] = useState({
+    platform: "tiktok",
+    duration: 15,
+    resolution: 720,
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [results, setResults] = useState([]);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const estimatedTime = 60; // Estimated processing time in seconds (based on your 60s timeout)
-    const intervalTime = 1000; // Update every 1 second
-    const increment = 100 / (estimatedTime / (intervalTime / 1000)); // Increment per second to reach 100%
+  // Simulate backend processing
+  const handleStartConversion = async () => {
+    if (!videoFile) {
+      setError("Please upload a video file.");
+      return;
+    }
+    if (videoFile.size > 500 * 1024 * 1024) { // 500MB limit
+      setError("File too large. Please upload a video under 500MB.");
+      return;
+    }
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
+    setIsProcessing(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("video", videoFile);
+    formData.append("platform", preferences.platform);
+    formData.append("duration", preferences.duration);
+    formData.append("resolution", preferences.resolution);
+
+    try {
+      const response = await axios.post(
+        "https://videoconvertermvp-production.up.railway.app/convert",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          timeout: 60000, // 60 seconds timeout
         }
-        return prev + increment;
-      });
-    }, intervalTime);
+      );
 
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, []);
+    const { jobId } = response.data;
+
+    // Poll for status
+    const pollStatus = async () => {
+        try {
+          const statusResponse = await axios.get(
+            `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
+          );
+          const { status, url, error } = statusResponse.data;
+
+          if (status === "completed") {
+            setResults([{ url, id: 1 }]);
+            setIsProcessing(false);
+          } else if (status === "failed") {
+            setError(error || "Video processing failed.");
+            setIsProcessing(false);
+          } else {
+            setTimeout(pollStatus, 3000); // Poll every 3 seconds
+          }
+        } catch (err) {
+          setError("Failed to check status. Please try again.");
+          setIsProcessing(false);
+          console.error(err);
+        }
+      };
+
+      pollStatus();
+    } catch (err) {
+      setError("Failed to start processing. Please try again.");
+      setIsProcessing(false);
+      console.error(err);
+    }
+  };
+
+  //     console.log("Backend response:", response.data);
+
+  //     // Handle different response structures
+  //     let clips = [];
+  //     if (Array.isArray(response.data.clips)) {
+  //       clips = response.data.clips; // { clips: [{ url, id }] }
+  //     } else if (response.data.url) {
+  //       clips = [{ url: response.data.url, id: response.data.id || 1 }]; // { url, id? } - Default id if missing
+  //     } else if (typeof response.data === "string") {
+  //       clips = [{ url: response.data, id: 1 }]; // Just a URL string
+  //     } else {
+  //       throw new Error("Unexpected response structure");
+  //     }
+
+  //     setResults(clips); // Adjust based on your backend response
+  //     setIsProcessing(false);
+  //   } catch (err) {
+  //     let errorMessage = "Failed to process the video. Please try again.";
+  //     if (err.response?.status === 413) {
+  //       errorMessage = "File too large. Please upload a smaller video.";
+  //     } else if (err.response?.status === 400) {
+  //       errorMessage = "Invalid video format. Please upload an MP4 or MOV file.";
+  //     }
+  //     setError(errorMessage);
+  //     setIsProcessing(false);
+  //     console.error(err);
+  //   }
+  // };
 
   return (
-    <div className="my-8 flex flex-col items-center">
-      <div className="w-full max-w-md mb-2">
-        <div className="bg-gray-200 rounded-full h-2.5">
-          <div
-            className="bg-blue-600 h-2.5 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <div className="card max-w-lg mx-auto mt-24 mb-10 p-8 bg-white rounded-lg shadow-lg">
+        <main className="flex-1 container mx-auto p-4">
+          <UploadSection videoFile={videoFile} setVideoFile={setVideoFile} />
+          <PreferencesForm preferences={preferences} setPreferences={setPreferences} />
+          {error && <p className="mt-2 text-red-600">{error}</p>}
+          <button
+            className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center"
+            disabled={!videoFile || isProcessing}
+            onClick={handleStartConversion}
+          >
+            {isProcessing ? (
+              <svg
+                className="animate-spin h-5 w-5 mr-2"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+            ) : null}
+            {isProcessing ? "Processing..." : "Start Conversion"}
+          </button>
+          {isProcessing && <ProcessingStatus />}
+          {results.length > 0 && <ResultsPreview results={results} />}
+        </main>
+        <Footer />
       </div>
-      <p>Processing your video... {Math.round(progress)}%</p>
     </div>
   );
-};
+}
 
-export default ProcessingStatus;
+export default App;
