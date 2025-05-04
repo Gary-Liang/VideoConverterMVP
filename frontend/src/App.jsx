@@ -89,7 +89,7 @@ function App() {
             setTimeout(pollStatus, 3000);
           }
         } catch (err) {
-          console.error("Poll status error:", err);
+          console.error("Poll status error:", err.message, "status:", err.response?.status, "for jobId:", jobId);
           setError("Failed to check status. Please try again.");
           setIsProcessing(false);
           setJobId(null);
