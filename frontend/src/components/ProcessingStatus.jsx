@@ -3,9 +3,10 @@ import axios from "axios";
 
 const ProcessingStatus = ({ jobId }) => {
   const [progress, setProgress] = useState(0);
+  const [isPolling, setIsPolling] = useState(true);
 
   useEffect(() => {
-    if (!jobId) return;
+    if (!jobId || !isPolling) return;
 
     const pollProgress = async () => {
       try {
@@ -16,15 +17,19 @@ const ProcessingStatus = ({ jobId }) => {
 
         if (status === "processing") {
           setProgress(newProgress || 0);
-          setTimeout(pollProgress, 1000); // Poll every 1 second
+          setTimeout(pollProgress, 1000);
+        } else {
+          setIsPolling(false); // Stop polling if not processing
+          setProgress(100); // Ensure progress bar completes
         }
       } catch (err) {
         console.error("Failed to fetch progress:", err);
+        setIsPolling(false); // Stop polling on error
       }
     };
 
     pollProgress();
-  }, [jobId]);
+  }, [jobId, isPolling]);
 
   return (
     <div className="my-8 flex flex-col items-center">
