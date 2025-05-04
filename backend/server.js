@@ -53,7 +53,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
 
   // Store initial job status
   jobs.set(jobId, { status: 'processing', progress: 0 });
-  console.log(`Job initialized: ${jobId}`); // Debug log
+  console.log(`Job initialized: ${jobId}`);
 
   // Return jobId immediately
   res.json({ jobId });
@@ -81,7 +81,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
     // Process video conversion with progress
     const duration = parseInt(req.query.duration) || 30;
     const resolution = req.query.resolution === '1080p' ? '1080:1920' : '720:1280';
-    const command = `${ffmpeg} -i "${inputVideo}" -t ${duration} -vf "scale=${resolution}:force_original_aspect_ratio=decrease,pad=${resolution}:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -c:a aac -progress "${progressFile}" -y "${outputPath}"`;
+    const command = `${ffmpeg} -i "${inputVideo}" -t ${duration} -vf "scale=${resolution}:force_original_aspect_ratio=decrease,pad=${resolution}:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -c:a aac -progress "${progressFile}" -nostats -loglevel info -y "${outputPath}"`;
 
     const ffmpegProcess = exec(command, async (error) => {
       if (error) {
@@ -110,7 +110,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
 
         // Update job status with the result
         jobs.set(jobId, { status: 'completed', url: publicUrl, progress: 100, completedAt: Date.now() });
-        console.log(`Job completed: ${jobId}, URL: ${publicUrl}`); // Debug log
+        console.log(`Job completed: ${jobId}, URL: ${publicUrl}`);
 
         // Clean up local files
         fs.unlinkSync(inputVideo);
@@ -127,7 +127,10 @@ app.post('/convert', upload.single('video'), async (req, res) => {
 
     // Watch progress file for updates
     const watchProgress = () => {
-      if (!fs.existsSync(progressFile)) return;
+      if (!fs.existsSync(progressFile)) {
+        console.log(`Progress file not found for job ${jobId}`);
+        return;
+      }
 
       const data = fs.readFileSync(progressFile, 'utf8');
       const lines = data.split('\n');
@@ -136,23 +139,24 @@ app.post('/convert', upload.single('video'), async (req, res) => {
       for (const line of lines) {
         if (line.startsWith('out_time_ms=')) {
           outTime = parseInt(line.split('=')[1]) / 1000000; // Convert microseconds to seconds
+          console.log(`Raw out_time_ms for job ${jobId}: ${line}`); // Debug log
           break;
         }
       }
 
       const progress = Math.min(100, (outTime / totalSeconds) * 100);
       jobs.set(jobId, { ...jobs.get(jobId), progress: Math.round(progress) });
-      console.log(`Progress updated for job ${jobId}: ${Math.round(progress)}%`); // Debug log
+      console.log(`Progress updated for job ${jobId}: ${Math.round(progress)}%`);
     };
 
-    // Poll the progress file every second
+    // Poll the progress file every 500ms for more frequent updates
     const progressInterval = setInterval(() => {
       if (jobs.get(jobId)?.status !== 'processing') {
         clearInterval(progressInterval);
         return;
       }
       watchProgress();
-    }, 1000);
+    }, 500);
   });
 });
 
@@ -162,19 +166,19 @@ app.get('/status/:jobId', (req, res) => {
   const job = jobs.get(jobId);
 
   if (!job) {
-    console.log(`Job not found: ${jobId}`); // Debug log
+    console.log(`Job not found: ${jobId}`);
     return res.status(404).send('Job not found');
   }
 
-  console.log(`Status requested for job ${jobId}:`, job); // Debug log
+  console.log(`Status requested for job ${jobId}:`, job);
   res.json(job);
 
   // Clean up completed/failed jobs after 30 seconds
   if (job.status === "completed" || job.status === "failed") {
     const timeSinceCompletion = Date.now() - (job.completedAt || 0);
-    if (timeSinceCompletion >= 30 * 1000) { // 30 seconds
+    if (timeSinceCompletion >= 30 * 1000) {
       jobs.delete(jobId);
-      console.log(`Job deleted after 30s: ${jobId}`); // Debug log
+      console.log(`Job deleted after 30s: ${jobId}`);
     }
   }
 });
