@@ -99,7 +99,7 @@ function App() {
 
       pollStatus();
     } catch (err) {
-      console.error("Conversion start error:", err);
+      console.error("Conversion start error:", err.message, "status:", err.response?.status);
       setError("Failed to start processing. Please try again.");
       setIsProcessing(false);
       setJobId(null);
@@ -116,7 +116,7 @@ function App() {
   }, [polling, isProcessing]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex-col">
       <Header />
       <div className="card max-w-lg mx-auto mt-24 mb-10 p-8 bg-white rounded-lg shadow-lg">
         <main className="flex-1 container mx-auto p-4">
