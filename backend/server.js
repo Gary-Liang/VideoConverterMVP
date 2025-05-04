@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { exec, spawn } = require('child_process'); // Re-added exec
+const { exec, spawn } = require('child_process');
 const cors = require('cors');
 const ffmpeg = require('ffmpeg-static');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
@@ -56,8 +56,8 @@ app.post('/convert', upload.single('video'), async (req, res) => {
   // Return jobId immediately
   res.json({ jobId });
 
-  // Get total duration of the video for progress calculation
-  exec(`${ffmpeg} -i "${inputVideo}" 2>&1 | grep "Duration" | awk '{print $2}' | tr -d ,`, (err, stdout) => {
+  // Get total duration of the input video
+  exec(`${ffmpeg} -i "${inputVideo}" -hide_banner 2>&1 | grep Duration | cut -d' ' -f4 | cut -d',' -f1`, (err, stdout) => {
     if (err) {
       console.error('FFmpeg duration error:', err);
       jobs.set(jobId, { status: 'failed', error: 'Failed to get video duration', completedAt: Date.now() });
@@ -67,20 +67,23 @@ app.post('/convert', upload.single('video'), async (req, res) => {
 
     const durationMatch = stdout.match(/(\d+):(\d+):(\d+\.\d+)/);
     if (!durationMatch) {
-      console.error('Failed to parse video duration for job:', jobId);
+      console.error('Failed to parse video duration for job:', jobId, 'stdout:', stdout);
       jobs.set(jobId, { status: 'failed', error: 'Failed to parse video duration', completedAt: Date.now() });
       fs.unlinkSync(inputVideo);
       return;
     }
 
-    const totalSeconds = parseInt(durationMatch[1]) * 3600 + parseInt(durationMatch[2]) * 60 + parseFloat(durationMatch[3]);
+    const totalInputSeconds = parseInt(durationMatch[1]) * 3600 + parseInt(durationMatch[2]) * 60 + parseFloat(durationMatch[3]);
+    const requestedDuration = parseInt(req.query.duration) || 15;
+    const totalSeconds = Math.min(totalInputSeconds, requestedDuration); // Use requested duration or input duration, whichever is shorter
+
+    console.log(`Total input duration: ${totalInputSeconds}s, Requested duration: ${requestedDuration}s, Using: ${totalSeconds}s`);
 
     // Process video conversion with progress via stderr
-    const duration = parseInt(req.query.duration) || 30;
     const resolution = req.query.resolution === '1080p' ? '1080:1920' : '720:1280';
     const args = [
       '-i', inputVideo,
-      '-t', duration.toString(),
+      '-t', totalSeconds.toString(),
       '-vf', `scale=${resolution}:force_original_aspect_ratio=decrease,pad=${resolution}:(ow-iw)/2:(oh-ih)/2`,
       '-c:v', 'libx264',
       '-c:a', 'aac',
