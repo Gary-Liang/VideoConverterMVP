@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const { spawn } = require('child_process');
+const { exec, spawn } = require('child_process'); // Re-added exec
 const cors = require('cors');
 const ffmpeg = require('ffmpeg-static');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
@@ -57,8 +57,7 @@ app.post('/convert', upload.single('video'), async (req, res) => {
   res.json({ jobId });
 
   // Get total duration of the video for progress calculation
-  const getDurationCommand = `${ffmpeg} -i "${inputVideo}" 2>&1 | grep "Duration" | awk '{print $2}' | tr -d ,`;
-  exec(getDurationCommand, (err, stdout) => {
+  exec(`${ffmpeg} -i "${inputVideo}" 2>&1 | grep "Duration" | awk '{print $2}' | tr -d ,`, (err, stdout) => {
     if (err) {
       console.error('FFmpeg duration error:', err);
       jobs.set(jobId, { status: 'failed', error: 'Failed to get video duration', completedAt: Date.now() });
