@@ -15,16 +15,16 @@ function App() {
     resolution: 720,
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [jobId, setJobId] = useState(null); // New state for jobId
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
 
-  // Simulate backend processing
   const handleStartConversion = async () => {
     if (!videoFile) {
       setError("Please upload a video file.");
       return;
     }
-    if (videoFile.size > 500 * 1024 * 1024) { // 500MB limit
+    if (videoFile.size > 500 * 1024 * 1024) {
       setError("File too large. Please upload a video under 500MB.");
       return;
     }
@@ -46,14 +46,14 @@ function App() {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          timeout: 60000, // 60 seconds timeout
+          timeout: 60000,
         }
       );
 
-    const { jobId } = response.data;
+      const { jobId } = response.data;
+      setJobId(jobId); // Store jobId in state
 
-    // Poll for status
-    const pollStatus = async () => {
+      const pollStatus = async () => {
         try {
           const statusResponse = await axios.get(
             `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
@@ -63,15 +63,18 @@ function App() {
           if (status === "completed") {
             setResults([{ url, id: 1 }]);
             setIsProcessing(false);
+            setJobId(null); // Clear jobId when done
           } else if (status === "failed") {
             setError(error || "Video processing failed.");
             setIsProcessing(false);
+            setJobId(null); // Clear jobId when failed
           } else {
-            setTimeout(pollStatus, 3000); // Poll every 3 seconds
+            setTimeout(pollStatus, 3000);
           }
         } catch (err) {
           setError("Failed to check status. Please try again.");
           setIsProcessing(false);
+          setJobId(null); // Clear jobId on error
           console.error(err);
         }
       };
@@ -80,38 +83,10 @@ function App() {
     } catch (err) {
       setError("Failed to start processing. Please try again.");
       setIsProcessing(false);
+      setJobId(null); // Clear jobId on error
       console.error(err);
     }
   };
-
-  //     console.log("Backend response:", response.data);
-
-  //     // Handle different response structures
-  //     let clips = [];
-  //     if (Array.isArray(response.data.clips)) {
-  //       clips = response.data.clips; // { clips: [{ url, id }] }
-  //     } else if (response.data.url) {
-  //       clips = [{ url: response.data.url, id: response.data.id || 1 }]; // { url, id? } - Default id if missing
-  //     } else if (typeof response.data === "string") {
-  //       clips = [{ url: response.data, id: 1 }]; // Just a URL string
-  //     } else {
-  //       throw new Error("Unexpected response structure");
-  //     }
-
-  //     setResults(clips); // Adjust based on your backend response
-  //     setIsProcessing(false);
-  //   } catch (err) {
-  //     let errorMessage = "Failed to process the video. Please try again.";
-  //     if (err.response?.status === 413) {
-  //       errorMessage = "File too large. Please upload a smaller video.";
-  //     } else if (err.response?.status === 400) {
-  //       errorMessage = "Invalid video format. Please upload an MP4 or MOV file.";
-  //     }
-  //     setError(errorMessage);
-  //     setIsProcessing(false);
-  //     console.error(err);
-  //   }
-  // };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -150,7 +125,7 @@ function App() {
             ) : null}
             {isProcessing ? "Processing..." : "Start Conversion"}
           </button>
-          {isProcessing && <ProcessingStatus />}
+          {isProcessing && <ProcessingStatus jobId={jobId} />}
           {results.length > 0 && <ResultsPreview results={results} />}
         </main>
         <Footer />

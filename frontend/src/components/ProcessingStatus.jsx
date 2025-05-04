@@ -1,25 +1,30 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const ProcessingStatus = () => {
+const ProcessingStatus = ({ jobId }) => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const estimatedTime = 60; // Estimated processing time in seconds (based on your 60s timeout)
-    const intervalTime = 1000; // Update every 1 second
-    const increment = 100 / (estimatedTime / (intervalTime / 1000)); // Increment per second to reach 100%
+    if (!jobId) return;
 
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
+    const pollProgress = async () => {
+      try {
+        const response = await axios.get(
+          `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
+        );
+        const { progress: newProgress, status } = response.data;
+
+        if (status === "processing") {
+          setProgress(newProgress || 0);
+          setTimeout(pollProgress, 1000); // Poll every 1 second
         }
-        return prev + increment;
-      });
-    }, intervalTime);
+      } catch (err) {
+        console.error("Failed to fetch progress:", err);
+      }
+    };
 
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, []);
+    pollProgress();
+  }, [jobId]);
 
   return (
     <div className="my-8 flex flex-col items-center">
