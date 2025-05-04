@@ -4,32 +4,50 @@ import axios from "axios";
 const ProcessingStatus = ({ jobId }) => {
   const [progress, setProgress] = useState(0);
   const [isPolling, setIsPolling] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!jobId || !isPolling) return;
 
-    const pollProgress = async () => {
-      try {
-        const response = await axios.get(
-          `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
-        );
-        const { progress: newProgress, status } = response.data;
+    // Add a small delay to ensure backend has initialized the job
+    const timer = setTimeout(() => {
+      const pollProgress = async () => {
+        try {
+          const response = await axios.get(
+            `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
+          );
+          const { progress: newProgress, status } = response.data;
 
-        if (status === "processing") {
-          setProgress(newProgress || 0);
-          setTimeout(pollProgress, 1000);
-        } else {
-          setIsPolling(false); // Stop polling if not processing
-          setProgress(100); // Ensure progress bar completes
+          if (status === "processing") {
+            setProgress(newProgress || 0);
+            setTimeout(pollProgress, 1000);
+          } else if (status === "completed") {
+            setProgress(100);
+            setIsPolling(false);
+          } else if (status === "failed") {
+            setError("Processing failed. Please try again.");
+            setIsPolling(false);
+          }
+        } catch (err) {
+          console.error("Failed to fetch progress:", err);
+          if (err.response?.status === 404) {
+            setError("Job not found. Please try again.");
+          } else {
+            setError("Failed to fetch progress. Please try again.");
+          }
+          setIsPolling(false);
         }
-      } catch (err) {
-        console.error("Failed to fetch progress:", err);
-        setIsPolling(false); // Stop polling on error
-      }
-    };
+      };
 
-    pollProgress();
+      pollProgress();
+    }, 2000); // 2-second delay before starting polling
+
+    return () => clearTimeout(timer);
   }, [jobId, isPolling]);
+
+  if (error) {
+    return <p className="my-8 text-red-600 text-center">{error}</p>;
+  }
 
   return (
     <div className="my-8 flex flex-col items-center">
