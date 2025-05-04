@@ -58,46 +58,6 @@ function App() {
       }
       setJobId(jobId);
       console.log("Job started with ID:", jobId);
-
-      const pollStatus = async () => {
-        if (!polling || !jobId) {
-          console.log("Polling stopped: jobId:", jobId, "polling:", polling);
-          return;
-        }
-
-        try {
-          const statusResponse = await axios.get(
-            `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
-          );
-          const { status, url, error } = statusResponse.data;
-          console.log("Poll status response:", status, "for jobId:", jobId);
-
-          if (status === "completed") {
-            console.log("Job completed, setting results and stopping polling");
-            setResults([{ url, id: 1 }]);
-            setIsProcessing(false);
-            setJobId(null);
-            setPolling(false);
-          } else if (status === "failed") {
-            console.log("Job failed, setting error and stopping polling");
-            setError(error || "Video processing failed.");
-            setIsProcessing(false);
-            setJobId(null);
-            setPolling(false);
-          } else {
-            console.log("Job still processing, continuing polling");
-            setTimeout(pollStatus, 3000);
-          }
-        } catch (err) {
-          console.error("Poll status error:", err.message, "status:", err.response?.status, "for jobId:", jobId);
-          setError("Failed to check status. Please try again.");
-          setIsProcessing(false);
-          setJobId(null);
-          setPolling(false);
-        }
-      };
-
-      pollStatus();
     } catch (err) {
       console.error("Conversion start error:", err.message, "status:", err.response?.status);
       setError("Failed to start processing. Please try again.");
@@ -106,6 +66,52 @@ function App() {
       setPolling(false);
     }
   };
+
+  useEffect(() => {
+    if (!polling || !jobId) return;
+
+    console.log("Starting polling with jobId:", jobId, "polling:", polling);
+
+    const pollStatus = async () => {
+      if (!polling || !jobId) {
+        console.log("Polling stopped: jobId:", jobId, "polling:", polling);
+        return;
+      }
+
+      try {
+        const statusResponse = await axios.get(
+          `https://videoconvertermvp-production.up.railway.app/status/${jobId}`
+        );
+        const { status, url, error } = statusResponse.data;
+        console.log("Poll status response:", status, "for jobId:", jobId);
+
+        if (status === "completed") {
+          console.log("Job completed, setting results and stopping polling");
+          setResults([{ url, id: 1 }]);
+          setIsProcessing(false);
+          setJobId(null);
+          setPolling(false);
+        } else if (status === "failed") {
+          console.log("Job failed, setting error and stopping polling");
+          setError(error || "Video processing failed.");
+          setIsProcessing(false);
+          setJobId(null);
+          setPolling(false);
+        } else {
+          console.log("Job still processing, continuing polling");
+          setTimeout(pollStatus, 3000);
+        }
+      } catch (err) {
+        console.error("Poll status error:", err.message, "status:", err.response?.status, "for jobId:", jobId);
+        setError("Failed to check status. Please try again.");
+        setIsProcessing(false);
+        setJobId(null);
+        setPolling(false);
+      }
+    };
+
+    pollStatus();
+  }, [jobId, polling]);
 
   // Ensure UI updates when polling stops
   useEffect(() => {
@@ -119,7 +125,7 @@ function App() {
     <div className="min-h-screen flex-col">
       <Header />
       <div className="card max-w-lg mx-auto mt-24 mb-10 p-8 bg-white rounded-lg shadow-lg">
-        <main className="flex-1 container mx-auto p-4">
+        <main class="flex-1 container mx-auto p-4">
           <UploadSection videoFile={videoFile} setVideoFile={setVideoFile} />
           <PreferencesForm preferences={preferences} setPreferences={setPreferences} />
           {error && <p className="mt-2 text-red-600">{error}</p>}
