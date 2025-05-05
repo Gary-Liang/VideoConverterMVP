@@ -65,7 +65,7 @@ const ResultsPreview = ({ results }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-            <div className="w-full">
+            <div className="flex justify-center w-full p-4 bg-black">
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
@@ -73,46 +73,45 @@ const ResultsPreview = ({ results }) => {
                 playing={playing}
                 width="100%"
                 height="auto"
+                style={{ maxWidth: "360px", aspectRatio: "9/16" }}
                 onProgress={handleProgress}
                 onDuration={handleDuration}
                 onError={(e) => console.error("Video load error:", e)}
               />
             </div>
-            <div className="p-4 bg-gray-100 flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-4">
-                <button
-                  onClick={handlePlayPause}
-                  className="text-white bg-blue-600 p-3 rounded-full hover:bg-blue-700"
-                >
-                  {playing ? <FaPause size={24} /> : <FaPlay size={24} />}
-                </button>
-                <div className="flex-1 flex items-center gap-3">
-                  <span className="text-gray-800">
-                    {formatTime(played * duration)} / {formatTime(duration)}
-                  </span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={1}
-                    step="any"
-                    value={played}
-                    onChange={handleSeekChange}
-                    className="w-full h-3 bg-gray-400 rounded accent-blue-500"
-                  />
-                </div>
-                <button
-                  onClick={handleFullscreen}
-                  className="text-white bg-gray-600 p-3 rounded-full hover:bg-gray-700"
-                >
-                  <FaExpand size={24} />
-                </button>
-                <button
-                  onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
-                  className="text-white bg-green-600 p-3 rounded-full hover:bg-green-700"
-                >
-                  <FaDownload size={24} />
-                </button>
+            <div className="p-4 bg-gray-100 flex justify-center items-center gap-4">
+              <button
+                onClick={handlePlayPause}
+                className="text-white bg-blue-600 p-3 rounded-full hover:bg-blue-700"
+              >
+                {playing ? <FaPause size={24} /> : <FaPlay size={24} />}
+              </button>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-800">
+                  {formatTime(played * duration)} / {formatTime(duration)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step="any"
+                  value={played}
+                  onChange={handleSeekChange}
+                  className="w-32 h-3 bg-gray-400 rounded accent-blue-500"
+                />
               </div>
+              <button
+                onClick={handleFullscreen}
+                className="text-white bg-gray-600 p-3 rounded-full hover:bg-gray-700"
+              >
+                <FaExpand size={24} />
+              </button>
+              <button
+                onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
+                className="text-white bg-green-600 p-3 rounded-full hover:bg-green-700"
+              >
+                <FaDownload size={24} />
+              </button>
             </div>
           </div>
         ))}
