@@ -15,9 +15,7 @@ const ResultsPreview = ({ results }) => {
 
   const handleDownload = async (url, filename) => {
     try {
-      const response = await axios.get(url, {
-        responseType: "blob",
-      });
+      const response = await axios.get(url, { responseType: "blob" });
       const blob = new Blob([response.data], { type: "video/mp4" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -53,17 +51,9 @@ const ResultsPreview = ({ results }) => {
   const handleFullscreen = () => {
     if (playerRef.current) {
       const player = playerRef.current.getInternalPlayer();
-      console.log("Attempting fullscreen with player:", player);
       if (player.requestFullscreen) {
-        player.requestFullscreen().catch((err) => {
-          console.error("Fullscreen failed:", err);
-          player.webkitRequestFullscreen?.();
-        });
-      } else {
-        console.warn("Fullscreen not supported by player");
+        player.requestFullscreen().catch((err) => console.error("Fullscreen failed:", err));
       }
-    } else {
-      console.error("Player ref not available for fullscreen");
     }
   };
 
@@ -79,7 +69,7 @@ const ResultsPreview = ({ results }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-            <div className="relative w-full aspect-[9/16]">
+            <div className="relative w-full" style={{ paddingTop: "177.78%" /* 16:9 aspect ratio */ }}>
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
@@ -87,25 +77,22 @@ const ResultsPreview = ({ results }) => {
                 playing={playing}
                 width="100%"
                 height="100%"
-                className="absolute top-0 left-0 object-contain bg-black"
+                className="absolute top-0 left-0 bg-black"
                 onProgress={handleProgress}
                 onDuration={handleDuration}
                 onError={(e) => console.error("ReactPlayer error:", e)}
               />
-              {/* Overlay Controls */}
-              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 transition-opacity duration-300">
-                <div className="flex items-center justify-between gap-6">
+              {/* Overlay Controls - Always Visible */}
+              <div className="absolute bottom-0 left-0 w-full bg-gray-900 bg-opacity-75 p-4">
+                <div className="flex items-center justify-between space-x-4">
                   <button
                     onClick={handlePlayPause}
-                    aria-label={playing ? "Pause" : "Play"}
-                    className="p-4 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition shadow-md"
+                    className="text-white bg-blue-600 p-2 rounded-full hover:bg-blue-700"
                   >
-                    {playing ? <FaPause size={24} /> : <FaPlay size={24} />}
+                    {playing ? <FaPause size={20} /> : <FaPlay size={20} />}
                   </button>
-                  <div className="flex-grow flex items-center gap-4">
-                    <span className="text-white text-base font-medium bg-black/50 px-2 py-1 rounded">
-                      {formatTime(played * duration)} / {formatTime(duration)}
-                    </span>
+                  <div className="flex-1 flex items-center space-x-2 text-white">
+                    <span>{formatTime(played * duration)} / {formatTime(duration)}</span>
                     <input
                       type="range"
                       min={0}
@@ -113,41 +100,21 @@ const ResultsPreview = ({ results }) => {
                       step="any"
                       value={played}
                       onChange={handleSeekChange}
-                      aria-label="Video progress"
-                      aria-valuenow={played * 100}
-                      aria-valuetext={`${formatTime(played * duration)} of ${formatTime(duration)}`}
-                      className="w-full h-3 bg-gray-300 rounded-lg appearance-none accent-blue-500 cursor-pointer transition-all duration-200 
-                        [&::-webkit-slider-thumb]:appearance-none 
-                        [&::-webkit-slider-thumb]:w-5 
-                        [&::-webkit-slider-thumb]:h-5 
-                        [&::-webkit-slider-thumb]:bg-blue-500 
-                        [&::-webkit-slider-thumb]:rounded-full 
-                        [&::-webkit-slider-thumb]:shadow-md 
-                        [&::-webkit-slider-thumb]:hover:bg-blue-600 
-                        [&::-moz-range-thumb]:w-5 
-                        [&::-moz-range-thumb]:h-5 
-                        [&::-moz-range-thumb]:bg-blue-500 
-                        [&::-moz-range-thumb]:rounded-full 
-                        [&::-moz-range-thumb]:shadow-md 
-                        [&::-moz-range-thumb]:hover:bg-blue-600"
+                      className="w-full h-2 bg-gray-400 rounded accent-blue-500"
                     />
                   </div>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={handleFullscreen}
-                      aria-label="Fullscreen"
-                      className="p-4 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition shadow-md"
-                    >
-                      <FaExpand size={24} />
-                    </button>
-                    <button
-                      onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
-                      aria-label="Download"
-                      className="p-4 bg-green-500 text-white rounded-full hover:bg-green-600 transition shadow-md"
-                    >
-                      <FaDownload size={24} />
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleFullscreen}
+                    className="text-white bg-gray-600 p-2 rounded-full hover:bg-gray-700"
+                  >
+                    <FaExpand size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
+                    className="text-white bg-green-600 p-2 rounded-full hover:bg-green-700"
+                  >
+                    <FaDownload size={20} />
+                  </button>
                 </div>
               </div>
             </div>
