@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import ReactPlayer from "react-player";
 import axios from "axios";
+import { FaPlay, FaPause, FaExpand, FaDownload } from "react-icons/fa";
 
 const ResultsPreview = ({ results }) => {
   const [playing, setPlaying] = useState(false); // Track play/pause state
@@ -46,14 +47,13 @@ const ResultsPreview = ({ results }) => {
       player.requestFullscreen();
     }
   };
-  
 
   return (
     <section className="my-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Preview Generated Clips</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
-          <div key={clip.id} className="border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div key={clip.id} className="border border-gray-200 rounded-lg p-6 shadow-sm">
             <div className="relative">
               <ReactPlayer
                 ref={playerRef}
@@ -64,14 +64,17 @@ const ResultsPreview = ({ results }) => {
                 height="360px"
                 onProgress={handleProgress}
               />
-              {/* Custom Controls */}
-              <div className="mt-2 flex items-center gap-2">
-                <button
-                  onClick={handlePlayPause}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-                >
-                  {playing ? "Pause" : "Play"}
-                </button>
+            </div>
+            {/* Unified Controls Bar */}
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                onClick={handlePlayPause}
+                aria-label={playing ? "Pause" : "Play"}
+                className="p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition shadow-sm"
+              >
+                {playing ? <FaPause /> : <FaPlay />}
+              </button>
+              <div className="flex-grow">
                 <input
                   type="range"
                   min={0}
@@ -79,24 +82,24 @@ const ResultsPreview = ({ results }) => {
                   step="any"
                   value={played}
                   onChange={handleSeekChange}
-                  className="w-full"
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none accent-blue-500 cursor-pointer"
                 />
               </div>
+              <button
+                onClick={handleFullscreen}
+                aria-label="Fullscreen"
+                className="p-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition shadow-sm"
+              >
+                <FaExpand />
+              </button>
+              <button
+                onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
+                aria-label="Download"
+                className="p-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition shadow-sm"
+              >
+                <FaDownload />
+              </button>
             </div>
-            <div className="mt-2 flex items-center gap-2">
-            <button
-              onClick={handleFullscreen}
-              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition"
-            >
-              Fullscreen
-            </button>
-            </div>
-            <button
-              onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
-              className="mt-3 inline-block px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
-            >
-              Download
-            </button>
           </div>
         ))}
       </div>
