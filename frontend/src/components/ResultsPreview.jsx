@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import ReactPlayer from "react-player";
 import axios from "axios";
 import { FaPlay, FaPause, FaExpand, FaDownload } from "react-icons/fa";
@@ -8,13 +8,6 @@ const ResultsPreview = ({ results }) => {
   const [played, setPlayed] = useState(0);
   const [duration, setDuration] = useState(0);
   const playerRef = useRef(null);
-
-  useEffect(() => {
-    console.log("ResultsPreview mounted with results:", results);
-    if (!results || results.length === 0) {
-      console.warn("No results data available");
-    }
-  }, [results]);
 
   const handleDownload = async (url, filename) => {
     try {
@@ -71,52 +64,54 @@ const ResultsPreview = ({ results }) => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Preview Generated Clips</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
-          <div key={clip.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm min-h-[300px]">
-            <div className="relative w-full" style={{ paddingTop: "177.78%" /* 9:16 aspect ratio */ }}>
+          <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
+            <div className="w-full">
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
                 controls={false}
                 playing={playing}
-                className="absolute top-0 left-0 object-cover w-full h-full"
+                width="100%"
+                height="auto"
                 onProgress={handleProgress}
                 onDuration={handleDuration}
-                onError={(e) => console.warn("Video load error:", e)}
+                onError={(e) => console.error("Video load error:", e)}
               />
-              {/* Always Visible Overlay for Controls */}
-              <div className="absolute bottom-0 left-0 w-full bg-gray-800 p-6">
-                <div className="flex items-center justify-between space-x-6">
-                  <button
-                    onClick={handlePlayPause}
-                    className="text-white bg-blue-600 p-3 rounded-full hover:bg-blue-700"
-                  >
-                    {playing ? <FaPause size={24} /> : <FaPlay size={24} />}
-                  </button>
-                  <div className="flex-1 flex items-center space-x-3 text-white">
-                    <span>{formatTime(played * duration)} / {formatTime(duration)}</span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={1}
-                      step="any"
-                      value={played}
-                      onChange={handleSeekChange}
-                      className="w-full h-3 bg-gray-400 rounded accent-blue-500"
-                    />
-                  </div>
-                  <button
-                    onClick={handleFullscreen}
-                    className="text-white bg-gray-600 p-3 rounded-full hover:bg-gray-700"
-                  >
-                    <FaExpand size={24} />
-                  </button>
-                  <button
-                    onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
-                    className="text-white bg-green-600 p-3 rounded-full hover:bg-green-700"
-                  >
-                    <FaDownload size={24} />
-                  </button>
+            </div>
+            <div className="p-4 bg-gray-100 flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-4">
+                <button
+                  onClick={handlePlayPause}
+                  className="text-white bg-blue-600 p-3 rounded-full hover:bg-blue-700"
+                >
+                  {playing ? <FaPause size={24} /> : <FaPlay size={24} />}
+                </button>
+                <div className="flex-1 flex items-center gap-3">
+                  <span className="text-gray-800">
+                    {formatTime(played * duration)} / {formatTime(duration)}
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step="any"
+                    value={played}
+                    onChange={handleSeekChange}
+                    className="w-full h-3 bg-gray-400 rounded accent-blue-500"
+                  />
                 </div>
+                <button
+                  onClick={handleFullscreen}
+                  className="text-white bg-gray-600 p-3 rounded-full hover:bg-gray-700"
+                >
+                  <FaExpand size={24} />
+                </button>
+                <button
+                  onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
+                  className="text-white bg-green-600 p-3 rounded-full hover:bg-green-700"
+                >
+                  <FaDownload size={24} />
+                </button>
               </div>
             </div>
           </div>
