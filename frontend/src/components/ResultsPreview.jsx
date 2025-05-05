@@ -54,7 +54,7 @@ const ResultsPreview = ({ results }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg p-6 shadow-sm">
-            <div className="relative">
+            <div className="relative rounded-md overflow-hidden shadow-sm">
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
@@ -66,15 +66,15 @@ const ResultsPreview = ({ results }) => {
               />
             </div>
             {/* Unified Controls Bar */}
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex items-center gap-4">
               <button
                 onClick={handlePlayPause}
                 aria-label={playing ? "Pause" : "Play"}
                 className="p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition shadow-sm"
               >
-                {playing ? <FaPause /> : <FaPlay />}
+                {playing ? <FaPause size={18} /> : <FaPlay size={18} />}
               </button>
-              <div className="flex-grow">
+              <div className="flex-grow max-w-[70%]">
                 <input
                   type="range"
                   min={0}
@@ -82,7 +82,22 @@ const ResultsPreview = ({ results }) => {
                   step="any"
                   value={played}
                   onChange={handleSeekChange}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none accent-blue-500 cursor-pointer"
+                  aria-label="Video progress"
+                  aria-valuenow={played * 100}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none accent-blue-500 cursor-pointer transition-all duration-200 
+                    [&::-webkit-slider-thumb]:appearance-none 
+                    [&::-webkit-slider-thumb]:w-4 
+                    [&::-webkit-slider-thumb]:h-4 
+                    [&::-webkit-slider-thumb]:bg-blue-500 
+                    [&::-webkit-slider-thumb]:rounded-full 
+                    [&::-webkit-slider-thumb]:shadow-sm 
+                    [&::-webkit-slider-thumb]:hover:bg-blue-600 
+                    [&::-moz-range-thumb]:w-4 
+                    [&::-moz-range-thumb]:h-4 
+                    [&::-moz-range-thumb]:bg-blue-500 
+                    [&::-moz-range-thumb]:rounded-full 
+                    [&::-moz-range-thumb]:shadow-sm 
+                    [&::-moz-range-thumb]:hover:bg-blue-600"
                 />
               </div>
               <button
@@ -90,14 +105,14 @@ const ResultsPreview = ({ results }) => {
                 aria-label="Fullscreen"
                 className="p-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition shadow-sm"
               >
-                <FaExpand />
+                <FaExpand size={18} />
               </button>
               <button
                 onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
                 aria-label="Download"
                 className="p-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition shadow-sm"
               >
-                <FaDownload />
+                <FaDownload size={18} />
               </button>
             </div>
           </div>
