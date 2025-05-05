@@ -73,7 +73,7 @@ const ResultsPreview = ({ results }) => {
                 playing={playing}
                 width="100%"
                 height="auto"
-                style={{ maxWidth: "360px", aspectRatio: "9/16" }}
+                style={{ maxWidth: "360px", objectFit: "contain", objectPosition: "center" }}
                 onProgress={handleProgress}
                 onDuration={handleDuration}
                 onError={(e) => console.error("Video load error:", e)}
