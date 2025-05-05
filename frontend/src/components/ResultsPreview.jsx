@@ -43,13 +43,21 @@ const ResultsPreview = ({ results }) => {
   const handleSeekChange = (e) => {
     const newPlayed = parseFloat(e.target.value);
     setPlayed(newPlayed);
-    playerRef.current.seekTo(newPlayed);
+    if (playerRef.current) playerRef.current.seekTo(newPlayed);
   };
 
   const handleFullscreen = () => {
-    const player = playerRef.current.getInternalPlayer();
-    if (player.requestFullscreen) {
-      player.requestFullscreen();
+    if (playerRef.current) {
+      const player = playerRef.current.getInternalPlayer();
+      if (player.requestFullscreen) {
+        player.requestFullscreen().catch((err) => {
+          console.error("Fullscreen failed:", err);
+          // Fallback to ReactPlayer wrapper fullscreen
+          playerRef.current.getInternalPlayer().webkitRequestFullscreen?.();
+        });
+      } else {
+        console.warn("Fullscreen not supported by player");
+      }
     }
   };
 
@@ -73,12 +81,12 @@ const ResultsPreview = ({ results }) => {
                 playing={playing}
                 width="100%"
                 height="100%"
-                className="absolute top-0 left-0"
+                className="absolute top-0 left-0 object-cover"
                 onProgress={handleProgress}
                 onDuration={handleDuration}
               />
               {/* Overlay Controls */}
-              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 backdrop-blur-sm opacity-0 hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 opacity-50 hover:opacity-100 transition-opacity duration-300">
                 <div className="flex items-center justify-between gap-6">
                   <button
                     onClick={handlePlayPause}
