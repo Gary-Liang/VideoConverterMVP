@@ -65,15 +65,15 @@ const ResultsPreview = ({ results }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex justify-center w-full p-4 bg-black">
+            <div className="flex justify-center items-center w-full p-4 bg-black min-h-[640px]" style={{ aspectRatio: "9/16" }}>
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
                 controls={false}
                 playing={playing}
                 width="100%"
-                height="auto"
-                style={{ maxWidth: "360px", objectFit: "contain", objectPosition: "center" }}
+                height="100%"
+                style={{ objectFit: "cover", objectPosition: "center" }}
                 onProgress={handleProgress}
                 onDuration={handleDuration}
                 onError={(e) => console.error("Video load error:", e)}
