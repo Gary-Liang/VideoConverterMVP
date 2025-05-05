@@ -69,7 +69,7 @@ const ResultsPreview = ({ results }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-            <div className="relative w-full" style={{ paddingTop: "177.78%" /* 16:9 aspect ratio */ }}>
+            <div className="relative w-full" style={{ paddingTop: "56.25%" /* 16:9 aspect ratio */ }}>
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
@@ -77,21 +77,21 @@ const ResultsPreview = ({ results }) => {
                 playing={playing}
                 width="100%"
                 height="100%"
-                className="absolute top-0 left-0 bg-black"
+                className="absolute top-0 left-0"
                 onProgress={handleProgress}
                 onDuration={handleDuration}
                 onError={(e) => console.error("ReactPlayer error:", e)}
               />
-              {/* Overlay Controls - Always Visible */}
-              <div className="absolute bottom-0 left-0 w-full bg-gray-900 bg-opacity-75 p-4">
-                <div className="flex items-center justify-between space-x-4">
+              {/* Always Visible Overlay for Controls */}
+              <div className="absolute bottom-0 left-0 w-full bg-gray-800 p-6">
+                <div className="flex items-center justify-between space-x-6">
                   <button
                     onClick={handlePlayPause}
-                    className="text-white bg-blue-600 p-2 rounded-full hover:bg-blue-700"
+                    className="text-white bg-blue-600 p-3 rounded-full hover:bg-blue-700"
                   >
-                    {playing ? <FaPause size={20} /> : <FaPlay size={20} />}
+                    {playing ? <FaPause size={24} /> : <FaPlay size={24} />}
                   </button>
-                  <div className="flex-1 flex items-center space-x-2 text-white">
+                  <div className="flex-1 flex items-center space-x-3 text-white">
                     <span>{formatTime(played * duration)} / {formatTime(duration)}</span>
                     <input
                       type="range"
@@ -100,20 +100,20 @@ const ResultsPreview = ({ results }) => {
                       step="any"
                       value={played}
                       onChange={handleSeekChange}
-                      className="w-full h-2 bg-gray-400 rounded accent-blue-500"
+                      className="w-full h-3 bg-gray-400 rounded accent-blue-500"
                     />
                   </div>
                   <button
                     onClick={handleFullscreen}
-                    className="text-white bg-gray-600 p-2 rounded-full hover:bg-gray-700"
+                    className="text-white bg-gray-600 p-3 rounded-full hover:bg-gray-700"
                   >
-                    <FaExpand size={20} />
+                    <FaExpand size={24} />
                   </button>
                   <button
                     onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
-                    className="text-white bg-green-600 p-2 rounded-full hover:bg-green-700"
+                    className="text-white bg-green-600 p-3 rounded-full hover:bg-green-700"
                   >
-                    <FaDownload size={20} />
+                    <FaDownload size={24} />
                   </button>
                 </div>
               </div>
