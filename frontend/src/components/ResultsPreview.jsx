@@ -11,6 +11,9 @@ const ResultsPreview = ({ results }) => {
 
   useEffect(() => {
     console.log("ResultsPreview mounted with results:", results);
+    if (!results || results.length === 0) {
+      console.warn("No results data available");
+    }
   }, [results]);
 
   const handleDownload = async (url, filename) => {
@@ -68,19 +71,17 @@ const ResultsPreview = ({ results }) => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Preview Generated Clips</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
-          <div key={clip.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-            <div className="relative w-full" style={{ paddingTop: "56.25%" /* 16:9 aspect ratio */ }}>
+          <div key={clip.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm min-h-[300px]">
+            <div className="relative w-full" style={{ paddingTop: "177.78%" /* 9:16 aspect ratio */ }}>
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
                 controls={false}
                 playing={playing}
-                width="100%"
-                height="100%"
-                className="absolute top-0 left-0"
+                className="absolute top-0 left-0 object-cover w-full h-full"
                 onProgress={handleProgress}
                 onDuration={handleDuration}
-                onError={(e) => console.error("ReactPlayer error:", e)}
+                onError={(e) => console.warn("Video load error:", e)}
               />
               {/* Always Visible Overlay for Controls */}
               <div className="absolute bottom-0 left-0 w-full bg-gray-800 p-6">
