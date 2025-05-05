@@ -61,8 +61,8 @@ const ResultsPreview = ({ results }) => {
 
   return (
     <section className="my-8">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Preview Generated Clips</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
             <div className="flex justify-center items-center w-full p-2 bg-black" style={{ aspectRatio: "9/16", maxHeight: "480px" }}>
