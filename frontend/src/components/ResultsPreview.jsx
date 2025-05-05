@@ -9,6 +9,10 @@ const ResultsPreview = ({ results }) => {
   const [duration, setDuration] = useState(0);
   const playerRef = useRef(null);
 
+  useEffect(() => {
+    console.log("ResultsPreview mounted with results:", results);
+  }, [results]);
+
   const handleDownload = async (url, filename) => {
     try {
       const response = await axios.get(url, {
@@ -49,15 +53,17 @@ const ResultsPreview = ({ results }) => {
   const handleFullscreen = () => {
     if (playerRef.current) {
       const player = playerRef.current.getInternalPlayer();
+      console.log("Attempting fullscreen with player:", player);
       if (player.requestFullscreen) {
         player.requestFullscreen().catch((err) => {
           console.error("Fullscreen failed:", err);
-          // Fallback to ReactPlayer wrapper fullscreen
-          playerRef.current.getInternalPlayer().webkitRequestFullscreen?.();
+          player.webkitRequestFullscreen?.();
         });
       } else {
         console.warn("Fullscreen not supported by player");
       }
+    } else {
+      console.error("Player ref not available for fullscreen");
     }
   };
 
@@ -73,7 +79,7 @@ const ResultsPreview = ({ results }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-            <div className="relative aspect-[9/16] w-full">
+            <div className="relative w-full aspect-[9/16]">
               <ReactPlayer
                 ref={playerRef}
                 url={clip.url}
@@ -81,12 +87,13 @@ const ResultsPreview = ({ results }) => {
                 playing={playing}
                 width="100%"
                 height="100%"
-                className="absolute top-0 left-0 object-cover"
+                className="absolute top-0 left-0 object-contain bg-black"
                 onProgress={handleProgress}
                 onDuration={handleDuration}
+                onError={(e) => console.error("ReactPlayer error:", e)}
               />
               {/* Overlay Controls */}
-              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 opacity-50 hover:opacity-100 transition-opacity duration-300">
+              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-6 transition-opacity duration-300">
                 <div className="flex items-center justify-between gap-6">
                   <button
                     onClick={handlePlayPause}
