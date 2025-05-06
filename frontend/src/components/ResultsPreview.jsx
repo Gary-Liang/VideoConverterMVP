@@ -62,6 +62,11 @@ const ResultsPreview = ({ results }) => {
     }
   };
 
+  const handleEnd = () => {
+    setPlaying(false);
+    setPlayed(0); // Reset progress to start
+  };
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -98,7 +103,8 @@ return (
                     onProgress={handleProgress}
                     onDuration={handleDuration}
                     onError={(e) => console.error("Video load error:", e)}
-                    progressInterval={100} // Increased progress update frequency
+                    progressInterval={50} // Increased progress update frequency
+                    onEnded={handleEnd}
                   />
                 </div>
               </div>
