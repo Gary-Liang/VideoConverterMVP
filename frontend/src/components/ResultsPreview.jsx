@@ -68,7 +68,10 @@ const ResultsPreview = ({ results }) => {
             <div className="w-full">
               {/* Video container with proper aspect ratio */}
               <div className="relative" style={{ paddingTop: "177.78%" }}>
-                <div className="absolute top-0 left-0 w-full h-full bg-black">
+                <div
+                  className="absolute top-0 left-0 w-full h-full bg-black"
+                  onClick={handlePlayPause}
+                >
                   <ReactPlayer
                     ref={playerRef}
                     url={clip.url}
