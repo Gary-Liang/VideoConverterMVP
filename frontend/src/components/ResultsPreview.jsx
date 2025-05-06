@@ -104,21 +104,25 @@ return (
               </div>
 
               {/* Controls */}
-              <div className="p-1 bg-gray-100 flex justify-center items-center gap-1 w-full">
+              <div className="p-1 bg-gray-100 flex items-center gap-2 w-full">
                 <button
                   onClick={handlePlayPause}
-                  className="text-white bg-blue-600 p-2 rounded-full hover:bg-blue-700"
+                  className="text-white bg-blue-600 p-2 rounded-full hover:bg-blue-700 shrink-0"
                 >
                   {playing ? <FaPause size={20} /> : <FaPlay size={20} />}
                 </button>
-                <div className="flex items-center gap-1 flex-1">
-                  <div className="w-20 text-gray-800 text-sm text-right">
-                    {formatTime(played * duration)}
+
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-gray-800 text-sm">
+                      {formatTime(played * duration)}
+                    </span>
+                    <span className="text-gray-800 text-sm">/</span>
+                    <span className="text-gray-800 text-sm">
+                      {formatTime(duration)}
+                    </span>
                   </div>
-                  <span className="text-gray-800 text-sm">/</span>
-                  <div className="w-20 text-gray-800 text-sm">
-                    {formatTime(duration)}
-                  </div>
+
                   <input
                     type="range"
                     min={0}
@@ -128,21 +132,24 @@ return (
                     onChange={handleSeekChange}
                     onMouseUp={handleSeekMouseUp}
                     onTouchEnd={handleSeekMouseUp}
-                    className="flex-1 h-2 bg-gray-400 rounded accent-blue-500 transition-all duration-100 ease-in-out"
+                    className="flex-1 h-2 bg-gray-400 rounded accent-blue-500 transition-all duration-100 ease-in-out min-w-[100px]"
                   />
                 </div>
-                <button
-                  onClick={handleFullscreen}
-                  className="text-white bg-gray-600 p-2 rounded-full hover:bg-gray-700"
-                >
-                  <FaExpand size={20} />
-                </button>
-                <button
-                  onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
-                  className="text-white bg-green-600 p-2 rounded-full hover:bg-green-700"
-                >
-                  <FaDownload size={20} />
-                </button>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={handleFullscreen}
+                    className="text-white bg-gray-600 p-2 rounded-full hover:bg-gray-700"
+                  >
+                    <FaExpand size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
+                    className="text-white bg-green-600 p-2 rounded-full hover:bg-green-700"
+                  >
+                    <FaDownload size={20} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
