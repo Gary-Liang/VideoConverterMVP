@@ -64,22 +64,33 @@ const ResultsPreview = ({ results }) => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
       <div className="max-w-lg mx-auto">
         {results.map((clip) => (
-          <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex flex-col w-full" style={{ maxHeight: "160px" }}>
-              <div className="flex justify-center items-center bg-black" style={{ aspectRatio: "9/16", flex: "1" }}>
-                <ReactPlayer
-                  ref={playerRef}
-                  url={clip.url}
-                  controls={false}
-                  playing={playing}
-                  width="100%"
-                  height="100%"
-                  style={{ objectFit: "cover", objectPosition: "center" }}
-                  onProgress={handleProgress}
-                  onDuration={handleDuration}
-                  onError={(e) => console.error("Video load error:", e)}
-                />
+          <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            <div className="w-full">
+              {/* Video container with proper aspect ratio */}
+              <div className="relative" style={{ paddingTop: "177.78%" }}>
+                <div className="absolute top-0 left-0 w-full h-full bg-black">
+                  <ReactPlayer
+                    ref={playerRef}
+                    url={clip.url}
+                    controls={false}
+                    playing={playing}
+                    width="100%"
+                    height="100%"
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      objectFit: 'cover'
+                    }}
+                    onProgress={handleProgress}
+                    onDuration={handleDuration}
+                    onError={(e) => console.error("Video load error:", e)}
+                  />
+                </div>
               </div>
+
+              {/* Controls */}
               <div className="p-1 bg-gray-100 flex justify-center items-center gap-2 w-full">
                 <button
                   onClick={handlePlayPause}
