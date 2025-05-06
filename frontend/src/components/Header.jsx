@@ -10,10 +10,10 @@ const Header = () => (
         <p className="text-sm text-gray-500 mt-1">Transform your videos into engaging reels in seconds!</p>
       </div>
     </div>
-    <nav className="space-x-6">
+    {/* <nav className="space-x-6">
       <a href="#" className="text-gray-600 hover:text-blue-600 transition">Home</a>
       <a href="#" className="text-gray-600 hover:text-blue-600 transition">About</a>
-    </nav>
+    </nav> */}
   </div>
 </header>
 );
