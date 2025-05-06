@@ -60,13 +60,13 @@ const ResultsPreview = ({ results }) => {
   };
 
   return (
-    <section className="my-8 flex justify-center">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {results.map((clip) => (
-            <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-              <div className="flex justify-center items-center w-full p-2 bg-black" style={{ aspectRatio: "9/16", maxHeight: "480px" }}>
+    <section className="my-8">
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
+      <div className="max-w-2xl mx-auto">
+        {results.map((clip) => (
+          <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
+            <div className="flex flex-col w-full" style={{ maxHeight: "640px" }}>
+              <div className="flex justify-center items-center bg-black" style={{ aspectRatio: "9/16", flex: "1" }}>
                 <ReactPlayer
                   ref={playerRef}
                   url={clip.url}
@@ -80,7 +80,7 @@ const ResultsPreview = ({ results }) => {
                   onError={(e) => console.error("Video load error:", e)}
                 />
               </div>
-              <div className="p-4 bg-gray-100 flex justify-center items-center gap-4">
+              <div className="p-4 bg-gray-100 flex justify-center items-center gap-4 w-full">
                 <button
                   onClick={handlePlayPause}
                   className="text-white bg-blue-600 p-3 rounded-full hover:bg-blue-700"
@@ -115,8 +115,8 @@ const ResultsPreview = ({ results }) => {
                 </button>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </section>
   );
