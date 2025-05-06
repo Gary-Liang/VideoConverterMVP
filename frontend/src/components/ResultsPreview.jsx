@@ -102,9 +102,13 @@ const ResultsPreview = ({ results }) => {
                   {playing ? <FaPause size={20} /> : <FaPlay size={20} />}
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-800 text-sm">
-                    {formatTime(played * duration)} / {formatTime(duration)}
-                  </span>
+                  <div className="w-20 text-gray-800 text-sm text-right">
+                    {formatTime(played * duration)}
+                  </div>
+                  <span className="text-gray-800 text-sm">/</span>
+                  <div className="w-20 text-gray-800 text-sm">
+                    {formatTime(duration)}
+                  </div>
                   <input
                     type="range"
                     min={0}
