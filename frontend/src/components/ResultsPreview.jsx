@@ -94,14 +94,14 @@ const ResultsPreview = ({ results }) => {
               </div>
 
               {/* Controls */}
-              <div className="p-1 bg-gray-100 flex justify-center items-center gap-2 w-full">
+              <div className="p-1 bg-gray-100 flex justify-center items-center gap-1 w-full">
                 <button
                   onClick={handlePlayPause}
                   className="text-white bg-blue-600 p-2 rounded-full hover:bg-blue-700"
                 >
                   {playing ? <FaPause size={20} /> : <FaPlay size={20} />}
                 </button>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <div className="w-20 text-gray-800 text-sm text-right">
                     {formatTime(played * duration)}
                   </div>
