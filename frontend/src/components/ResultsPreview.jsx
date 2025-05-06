@@ -7,6 +7,7 @@ const ResultsPreview = ({ results }) => {
   const [playing, setPlaying] = useState(false);
   const [played, setPlayed] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [seeking, setSeeking] = useState(false);
   const playerRef = useRef(null);
 
   const handleDownload = async (url, filename) => {
@@ -31,7 +32,9 @@ const ResultsPreview = ({ results }) => {
   };
 
   const handleProgress = (state) => {
-    setPlayed(state.played);
+    if (!seeking) {
+      setPlayed(state.played);
+    }
   };
 
   const handleDuration = (dur) => {
@@ -39,9 +42,15 @@ const ResultsPreview = ({ results }) => {
   };
 
   const handleSeekChange = (e) => {
-    const newPlayed = parseFloat(e.target.value);
-    setPlayed(newPlayed);
-    if (playerRef.current) playerRef.current.seekTo(newPlayed);
+    setSeeking(true);
+    setPlayed(parseFloat(e.target.value));
+  };
+
+  const handleSeekMouseUp = (e) => {
+    setSeeking(false);
+    if (playerRef.current) {
+      playerRef.current.seekTo(parseFloat(e.target.value));
+    }
   };
 
   const handleFullscreen = () => {
@@ -116,6 +125,8 @@ const ResultsPreview = ({ results }) => {
                     step="any"
                     value={played}
                     onChange={handleSeekChange}
+                    onMouseUp={handleSeekMouseUp}
+                    onTouchEnd={handleSeekMouseUp}
                     className="w-24 h-2 bg-gray-400 rounded accent-blue-500"
                   />
                 </div>
