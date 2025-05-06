@@ -66,8 +66,11 @@ const ResultsPreview = ({ results }) => {
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             <div className="w-full">
-              {/* Video container with proper aspect ratio */}
-              <div className="relative" style={{ paddingTop: "177.78%" }}>
+              {/* Smaller video container with max-width */}
+              <div className="relative mx-auto" style={{ 
+                maxWidth: "300px",
+                paddingTop: "177.78%" // Maintain 9:16 aspect ratio
+              }}>
                 <div className="absolute top-0 left-0 w-full h-full bg-black">
                   <ReactPlayer
                     ref={playerRef}
@@ -90,16 +93,16 @@ const ResultsPreview = ({ results }) => {
                 </div>
               </div>
 
-              {/* Controls */}
-              <div className="p-1 bg-gray-100 flex justify-center items-center gap-2 w-full">
+              {/* Compact controls */}
+              <div className="p-2 bg-gray-100 flex flex-wrap justify-center items-center gap-2 w-full">
                 <button
                   onClick={handlePlayPause}
                   className="text-white bg-blue-600 p-2 rounded-full hover:bg-blue-700"
                 >
-                  {playing ? <FaPause size={20} /> : <FaPlay size={20} />}
+                  {playing ? <FaPause size={16} /> : <FaPlay size={16} />}
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-800 text-sm">
+                  <span className="text-gray-800 text-xs">
                     {formatTime(played * duration)} / {formatTime(duration)}
                   </span>
                   <input
@@ -109,20 +112,20 @@ const ResultsPreview = ({ results }) => {
                     step="any"
                     value={played}
                     onChange={handleSeekChange}
-                    className="w-24 h-2 bg-gray-400 rounded accent-blue-500"
+                    className="w-20 h-1.5 bg-gray-400 rounded accent-blue-500"
                   />
                 </div>
                 <button
                   onClick={handleFullscreen}
                   className="text-white bg-gray-600 p-2 rounded-full hover:bg-gray-700"
                 >
-                  <FaExpand size={20} />
+                  <FaExpand size={16} />
                 </button>
                 <button
                   onClick={() => handleDownload(clip.url, `clip-${clip.id}.mp4`)}
                   className="text-white bg-green-600 p-2 rounded-full hover:bg-green-700"
                 >
-                  <FaDownload size={20} />
+                  <FaDownload size={16} />
                 </button>
               </div>
             </div>
