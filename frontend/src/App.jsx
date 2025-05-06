@@ -113,6 +113,7 @@ function App() {
     pollStatus();
   }, [jobId, polling]);
 
+  // Ensure UI updates when polling stops
   useEffect(() => {
     if (!polling && isProcessing) {
       console.log("Polling stopped, clearing isProcessing");
@@ -123,8 +124,8 @@ function App() {
   return (
     <div className="min-h-screen flex-col">
       <Header />
-      <div className="mx-auto mt-24 mb-10 p-8 bg-white rounded-lg shadow-lg">
-        <main className="flex-1 p-4">
+      <div className="card max-w-lg mx-auto mt-24 mb-10 p-8 bg-white rounded-lg shadow-lg">
+        <main class="flex-1 p-4">
           <UploadSection videoFile={videoFile} setVideoFile={setVideoFile} />
           <PreferencesForm preferences={preferences} setPreferences={setPreferences} />
           {error && <p className="mt-2 text-red-600">{error}</p>}
