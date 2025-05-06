@@ -62,10 +62,10 @@ const ResultsPreview = ({ results }) => {
   return (
     <section className="my-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-lg mx-auto">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex flex-col w-full" style={{ maxHeight: "640px" }}>
+            <div className="flex flex-col w-full" style={{ maxHeight: "480px" }}>
               <div className="flex justify-center items-center bg-black" style={{ aspectRatio: "9/16", flex: "1" }}>
                 <ReactPlayer
                   ref={playerRef}
