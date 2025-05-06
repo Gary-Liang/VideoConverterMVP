@@ -68,14 +68,14 @@ const ResultsPreview = ({ results }) => {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  return (
+eturn (
     <section className="my-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
       <div className="max-w-lg mx-auto">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             <div className="w-full">
-              {/* Video container with proper aspect ratio */}
+              {/* Video container */}
               <div className="relative" style={{ paddingTop: "177.78%" }}>
                 <div
                   className="absolute top-0 left-0 w-full h-full bg-black"
@@ -98,6 +98,7 @@ const ResultsPreview = ({ results }) => {
                     onProgress={handleProgress}
                     onDuration={handleDuration}
                     onError={(e) => console.error("Video load error:", e)}
+                    progressInterval={100} // Increased progress update frequency
                   />
                 </div>
               </div>
@@ -110,7 +111,7 @@ const ResultsPreview = ({ results }) => {
                 >
                   {playing ? <FaPause size={20} /> : <FaPlay size={20} />}
                 </button>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-1">
                   <div className="w-20 text-gray-800 text-sm text-right">
                     {formatTime(played * duration)}
                   </div>
@@ -127,7 +128,7 @@ const ResultsPreview = ({ results }) => {
                     onChange={handleSeekChange}
                     onMouseUp={handleSeekMouseUp}
                     onTouchEnd={handleSeekMouseUp}
-                    className="w-24 h-2 bg-gray-400 rounded accent-blue-500"
+                    className="flex-1 h-2 bg-gray-400 rounded accent-blue-500 transition-all duration-100 ease-in-out"
                   />
                 </div>
                 <button
