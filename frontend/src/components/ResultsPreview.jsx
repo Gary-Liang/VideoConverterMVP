@@ -68,7 +68,7 @@ const ResultsPreview = ({ results }) => {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-eturn (
+return (
     <section className="my-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
       <div className="max-w-lg mx-auto">
