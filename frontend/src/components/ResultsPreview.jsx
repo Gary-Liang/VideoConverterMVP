@@ -65,7 +65,7 @@ const ResultsPreview = ({ results }) => {
       <div className="max-w-lg mx-auto">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex flex-col w-full" style={{ maxHeight: "360px" }}>
+            <div className="flex flex-col w-full" style={{ maxHeight: "300px" }}>
               <div className="flex justify-center items-center bg-black" style={{ aspectRatio: "9/16", flex: "1" }}>
                 <ReactPlayer
                   ref={playerRef}
@@ -80,7 +80,7 @@ const ResultsPreview = ({ results }) => {
                   onError={(e) => console.error("Video load error:", e)}
                 />
               </div>
-              <div className="p-4 bg-gray-100 flex justify-center items-center gap-4 w-full">
+              <div className="p-2 bg-gray-100 flex justify-center items-center gap-4 w-full">
                 <button
                   onClick={handlePlayPause}
                   className="text-white bg-blue-600 p-3 rounded-full hover:bg-blue-700"
