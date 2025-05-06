@@ -65,8 +65,8 @@ const ResultsPreview = ({ results }) => {
       <div className="max-w-lg mx-auto">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex flex-col w-full">
-              <div className="flex justify-center items-center bg-black" style={{ aspectRatio: "16/9", height: "180px" }}>
+            <div className="flex flex-col w-full" style={{ maxHeight: "200px" }}>
+              <div className="flex justify-center items-center bg-black" style={{ aspectRatio: "9/16", flex: "1" }}>
                 <ReactPlayer
                   ref={playerRef}
                   url={clip.url}
@@ -74,7 +74,7 @@ const ResultsPreview = ({ results }) => {
                   playing={playing}
                   width="100%"
                   height="100%"
-                  style={{ objectFit: "contain", objectPosition: "center" }}
+                  style={{ objectFit: "cover", objectPosition: "center" }}
                   onProgress={handleProgress}
                   onDuration={handleDuration}
                   onError={(e) => console.error("Video load error:", e)}
