@@ -65,7 +65,7 @@ const ResultsPreview = ({ results }) => {
       <div className="max-w-lg mx-auto">
         {results.map((clip) => (
           <div key={clip.id} className="border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex flex-col w-full" style={{ maxHeight: "300px" }}>
+            <div className="flex flex-col w-full" style={{ maxHeight: "240px" }}>
               <div className="flex justify-center items-center bg-black" style={{ aspectRatio: "9/16", flex: "1" }}>
                 <ReactPlayer
                   ref={playerRef}
