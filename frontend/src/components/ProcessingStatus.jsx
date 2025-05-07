@@ -51,10 +51,8 @@ const ProcessingStatus = ({ jobId }) => {
     const elapsedSeconds = elapsedMs / 1000;
     const progressPercent = progress / 100;
     const estimatedTotalSeconds = elapsedSeconds / progressPercent;
-    const remainingSeconds = estimatedTotalSeconds - elapsedSeconds;
-    const minutes = Math.floor(remainingSeconds / 60);
-    const seconds = Math.floor(remainingSeconds % 60);
-    return `ETA: ~${minutes}m ${seconds}s`;
+    const remainingSeconds = Math.round(estimatedTotalSeconds - elapsedSeconds);
+    return `ETA: ~${remainingSeconds}s`;
   };
 
   if (error) {
