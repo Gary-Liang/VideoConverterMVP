@@ -8,6 +8,7 @@ const ResultsPreview = ({ results }) => {
   const [played, setPlayed] = useState(0);
   const [duration, setDuration] = useState(0);
   const [seeking, setSeeking] = useState(false);
+  const [error, setError] = useState(null);
   const playerRef = useRef(null);
 
   const handleDownload = async (url, filename) => {
@@ -64,7 +65,12 @@ const ResultsPreview = ({ results }) => {
 
   const handleEnd = () => {
     setPlaying(false);
-    setPlayed(0); // Reset progress to start
+    setPlayed(0);
+  };
+
+  const handleError = (e) => {
+    console.error("Video load error:", e);
+    setError("Failed to load video. Please try again.");
   };
 
   const formatTime = (seconds) => {
@@ -73,7 +79,7 @@ const ResultsPreview = ({ results }) => {
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-return (
+  return (
     <section className="my-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">Preview Generated Clips</h2>
       <div className="max-w-lg mx-auto">
@@ -86,26 +92,32 @@ return (
                   className="absolute top-0 left-0 w-full h-full bg-black"
                   onClick={handlePlayPause}
                 >
-                  <ReactPlayer
-                    ref={playerRef}
-                    url={clip.url}
-                    controls={false}
-                    playing={playing}
-                    width="100%"
-                    height="100%"
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      objectFit: 'cover'
-                    }}
-                    onProgress={handleProgress}
-                    onDuration={handleDuration}
-                    onError={(e) => console.error("Video load error:", e)}
-                    progressInterval={50} // Increased progress update frequency
-                    onEnded={handleEnd}
-                  />
+                  {error ? (
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-center">
+                      <p>{error}</p>
+                    </div>
+                  ) : (
+                    <ReactPlayer
+                      ref={playerRef}
+                      url={clip.url}
+                      controls={false}
+                      playing={playing}
+                      width="100%"
+                      height="100%"
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        objectFit: 'cover'
+                      }}
+                      onProgress={handleProgress}
+                      onDuration={handleDuration}
+                      onError={handleError}
+                      progressInterval={50}
+                      onEnded={handleEnd}
+                    />
+                  )}
                 </div>
               </div>
 

@@ -5,11 +5,11 @@ const ProcessingStatus = ({ jobId }) => {
   const [progress, setProgress] = useState(0);
   const [isPolling, setIsPolling] = useState(true);
   const [error, setError] = useState(null);
+  const [startTime] = useState(Date.now());
 
   useEffect(() => {
     if (!jobId || !isPolling) return;
 
-    // Add a small delay to ensure backend has initialized the job
     const timer = setTimeout(() => {
       const pollProgress = async () => {
         try {
@@ -40,10 +40,22 @@ const ProcessingStatus = ({ jobId }) => {
       };
 
       pollProgress();
-    }, 2000); // 2-second delay before starting polling
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [jobId, isPolling]);
+
+  const calculateETA = () => {
+    if (progress === 0 || progress >= 100) return "Calculating...";
+    const elapsedMs = Date.now() - startTime;
+    const elapsedSeconds = elapsedMs / 1000;
+    const progressPercent = progress / 100;
+    const estimatedTotalSeconds = elapsedSeconds / progressPercent;
+    const remainingSeconds = estimatedTotalSeconds - elapsedSeconds;
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = Math.floor(remainingSeconds % 60);
+    return `ETA: ~${minutes}m ${seconds}s`;
+  };
 
   if (error) {
     return <p className="my-8 text-red-600 text-center">{error}</p>;
@@ -59,7 +71,9 @@ const ProcessingStatus = ({ jobId }) => {
           ></div>
         </div>
       </div>
-      <p>Processing your video... {Math.round(progress)}%</p>
+      <p>
+        Processing your video... {Math.round(progress)}% - {calculateETA()}
+      </p>
     </div>
   );
 };
