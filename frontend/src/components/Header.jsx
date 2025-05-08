@@ -6,7 +6,7 @@ const Header = () => (
     <div className="flex items-center space-x-4">
       <img src="logo.png" alt="Logo" className="h-12" />
       <div>
-        <h1 className="text-3xl font-extrabold text-gray-900">AI Video to Reels Converter</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900">ClipCraft</h1>
         <p className="text-sm text-gray-500 mt-1">Transform your videos into engaging reels in seconds!</p>
       </div>
     </div>
