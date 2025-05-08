@@ -20,6 +20,15 @@ function App() {
   const [error, setError] = useState(null);
   const [polling, setPolling] = useState(false);
 
+  const handleNewUpload = (newVideo) => {
+    setVideoFile(newVideo);
+    setResults([]);
+    setError(null);
+    setIsProcessing(false);
+    setJobId(null);
+    setPolling(false);
+  };
+
   const handleStartConversion = async () => {
     if (!videoFile) {
       setError("Please upload a video file.");
@@ -30,8 +39,9 @@ function App() {
       return;
     }
 
-    setIsProcessing(true);
+    setResults([]);
     setError(null);
+    setIsProcessing(true);
     setPolling(true);
 
     const formData = new FormData();
@@ -113,7 +123,6 @@ function App() {
     pollStatus();
   }, [jobId, polling]);
 
-  // Ensure UI updates when polling stops
   useEffect(() => {
     if (!polling && isProcessing) {
       console.log("Polling stopped, clearing isProcessing");
@@ -122,11 +131,11 @@ function App() {
   }, [polling, isProcessing]);
 
   return (
-    <div className="min-h-screen flex-col">
+    <div className="min-h-screen flex flex-col items-center">
       <Header />
-      <div className="card max-w-lg mx-auto mt-24 mb-10 p-8 bg-white rounded-lg shadow-lg">
-        <main class="flex-1 p-4">
-          <UploadSection videoFile={videoFile} setVideoFile={setVideoFile} />
+      <div className="card max-w-lg mx-auto p-4 bg-white rounded-lg shadow-lg">
+        <main className="flex-1 p-2">
+          <UploadSection videoFile={videoFile} onFileChange={handleNewUpload} />
           <PreferencesForm preferences={preferences} setPreferences={setPreferences} />
           {error && <p className="mt-2 text-red-600">{error}</p>}
           <button
