@@ -49,6 +49,34 @@ app.post('/convert', upload.single('video'), async (req, res) => {
   const outputVideo = `converted_${Date.now()}.mp4`;
   const outputPath = path.join(__dirname, 'converted', outputVideo);
 
+  // Extract parameters from request
+  const { platform, outputWidth, outputHeight, duration } = req.query;
+
+  // Define format settings
+  const formatSettings = {
+    tiktok: { outputWidth: 1080, outputHeight: 1920, duration: 15 },
+    instagram: { outputWidth: 1080, outputHeight: 1920, duration: 30 },
+    "youtube-shorts": { outputWidth: 1080, outputHeight: 1920, duration: 60 },
+    "youtube-standard": { outputWidth: 1920, outputHeight: 1080, duration: 900 },
+    square: { outputWidth: 1080, outputHeight: 1080, duration: 30 },
+    custom: { outputWidth: parseInt(outputWidth) || 1080, outputHeight: parseInt(outputHeight) || 1920, duration: parseInt(duration) || 15 },
+  };
+
+  // Validate and apply settings
+  const settings = formatSettings[platform] || formatSettings.custom;
+  const width = settings.outputWidth;
+  const height = settings.outputHeight;
+
+  // Validate dimensions
+  if (width <= 0 || height <= 0) {
+    jobs.set(jobId, { status: 'failed', error: 'Invalid dimensions', completedAt: Date.now() });
+    fs.unlinkSync(inputVideo);
+    return res.status(400).send('Invalid dimensions');
+  }
+
+  const requestedDuration = parseInt(duration) || settings.duration;
+  const maxDuration = Math.min(requestedDuration, settings.duration);
+
   // Store initial job status
   jobs.set(jobId, { status: 'processing', progress: 0 });
   console.log(`Job initialized: ${jobId}`);
@@ -74,17 +102,15 @@ app.post('/convert', upload.single('video'), async (req, res) => {
     }
 
     const totalInputSeconds = parseInt(durationMatch[1]) * 3600 + parseInt(durationMatch[2]) * 60 + parseFloat(durationMatch[3]);
-    const requestedDuration = parseInt(req.query.duration) || 15;
-    const totalSeconds = Math.min(totalInputSeconds, requestedDuration); // Use requested duration or input duration, whichever is shorter
+    const totalSeconds = Math.min(totalInputSeconds, maxDuration);
 
     console.log(`Total input duration: ${totalInputSeconds}s, Requested duration: ${requestedDuration}s, Using: ${totalSeconds}s`);
 
     // Process video conversion with progress via stderr
-    const resolution = req.query.resolution === '1080p' ? '1080:1920' : '720:1280';
     const args = [
       '-i', inputVideo,
       '-t', totalSeconds.toString(),
-      '-vf', `scale=${resolution}:force_original_aspect_ratio=decrease,pad=${resolution}:(ow-iw)/2:(oh-ih)/2`,
+      '-vf', `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`,
       '-c:v', 'libx264',
       '-c:a', 'aac',
       '-y',
