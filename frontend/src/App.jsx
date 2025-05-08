@@ -11,8 +11,10 @@ function App() {
   const [videoFile, setVideoFile] = useState(null);
   const [preferences, setPreferences] = useState({
     platform: "tiktok",
+    outputWidth: 1080,
+    outputHeight: 1920,
     duration: 15,
-    resolution: 720,
+    isValid: true,
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [jobId, setJobId] = useState(null);
@@ -38,6 +40,10 @@ function App() {
       setError("File too large. Please upload a video under 500MB.");
       return;
     }
+    if (!preferences.isValid) {
+      setError("Please enter valid custom format settings.");
+      return;
+    }
 
     setResults([]);
     setError(null);
@@ -47,8 +53,9 @@ function App() {
     const formData = new FormData();
     formData.append("video", videoFile);
     formData.append("platform", preferences.platform);
+    formData.append("outputWidth", preferences.outputWidth);
+    formData.append("outputHeight", preferences.outputHeight);
     formData.append("duration", preferences.duration);
-    formData.append("resolution", preferences.resolution);
 
     try {
       const response = await axios.post(
@@ -123,7 +130,6 @@ function App() {
     pollStatus();
   }, [jobId, polling]);
 
-  // Ensure UI updates when polling stops
   useEffect(() => {
     if (!polling && isProcessing) {
       console.log("Polling stopped, clearing isProcessing");
@@ -135,13 +141,13 @@ function App() {
     <div className="min-h-screen flex-col">
       <Header />
       <div className="card max-w-lg mx-auto mt-24 mb-10 p-8 bg-white rounded-lg shadow-lg">
-        <main class="flex-1 p-4">
+        <main className="flex-1 p-4">
           <UploadSection videoFile={videoFile} onFileChange={handleNewUpload} />
           <PreferencesForm preferences={preferences} setPreferences={setPreferences} />
           {error && <p className="mt-2 text-red-600">{error}</p>}
           <button
             className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center"
-            disabled={!videoFile || isProcessing}
+            disabled={!videoFile || isProcessing || !preferences.isValid}
             onClick={handleStartConversion}
           >
             {isProcessing ? (
